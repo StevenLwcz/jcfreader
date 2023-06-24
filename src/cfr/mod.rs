@@ -16,7 +16,7 @@ pub struct ClassFile {
     pub attributes          : Vec<Attribute>,
 }
 
-// probably needs to return a Result of ClassFile and any errors found....
+// needs to return a Result<ClassFile><Error>  for any errors found..
 
 impl ClassFile {
     pub fn new(file_name: &String) -> Self {
@@ -39,24 +39,38 @@ impl ClassFile {
       }
    }
 
+   // pub fn get_access_flags()
+   // pub fn get_class_name()
+   // pub fn get_super_class_name()
 
    pub fn get_version(&self) -> String {
        self.version.to_string()
    }
 
-   // todo change to <Interface>
+  // to do transofrm the Index  struct to an expanded version and 
+  // pass back a vector of better things 
    pub fn get_interfaces(&self) -> Iter<Index> {
        self.interfaces.iter()
    }
    
+  // to do transofrm the FieldInfo  struct to an expanded version and 
+  // pass back a vector of better things 
    pub fn get_fields(&self) -> Iter<FieldInfo> {
        self.fields.iter()
    }
 
+  // to do transofrm the method struct to an expanded version and 
+  // pass back a vector of better things 
    pub fn get_methods(&self) -> Iter<Method> {
        self.methods.iter()
    }
+
+  // pass back a vector of better things 
+   // pub fn get_attributes() -> Vec<Attribute>
 }
+
+
+// todo put in sub module
 
 use std::fs::File;
 use std::io::Read;
@@ -191,7 +205,7 @@ pub struct Attribute {
      info: Vec<u8>,
 }
 
-#[derive(Debug)] // todo format numbers to say 17.0
+#[derive(Debug)] 
 pub struct Method {
     access_flags: u16, // todo enum
     pub name_index: Index,
