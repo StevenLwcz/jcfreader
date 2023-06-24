@@ -5,7 +5,7 @@ fn main() {
     let file_name = "tests/files/test1.class".to_string();
     let class_file = ClassFile::new(&file_name);
 
-    println!("{:?}", class_file.version);
+    println!("{}", class_file.get_version());
     // needs enumerate 
     for info in &class_file.constant_pool.constant_info {
         println!("{} // {}",  &info, class_file.constant_pool.get_item(&info.1));

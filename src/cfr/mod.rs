@@ -3,7 +3,7 @@ const JAVA_MAGIC: u32 = 0xcafebabe;
 
 // todo provide iterators so can be private again ???
 pub struct ClassFile {
-    pub version             : JavaVersion,
+    version             : JavaVersion,
     pub constant_pool       : ConstantPool,
     _access_flags       : u16, // to do  AccessFlags struct??
     _this_class         : Index,
@@ -35,6 +35,10 @@ impl ClassFile {
             methods         : reader.read_methods(),
             attributes      : reader.read_attributes(),
       }
+   }
+
+   pub fn get_version(&self) -> String {
+       self.version.to_string()
    }
 }
 
@@ -198,8 +202,13 @@ impl _Code {
     }
 }
 
-#[derive(Debug)] // todo format numbers to say 17.0
-pub struct JavaVersion(pub u16, pub u16);
+struct JavaVersion(u16, u16);
+
+impl fmt::Display for JavaVersion {
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}.{}", self.1 - 44, self.0)
+    }
+}
 
 struct ClassFileReader {
     file: File,
