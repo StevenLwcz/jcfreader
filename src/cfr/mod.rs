@@ -1,3 +1,5 @@
+use std::slice::Iter;
+
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
 
@@ -8,9 +10,9 @@ pub struct ClassFile {
     _access_flags       : u16, // to do  AccessFlags struct??
     _this_class         : Index,
     _super_class        : Index,
-    pub interfaces          : Vec<Index>,
-    pub fields              : Vec<FieldInfo>,
-    pub methods             : Vec<Method>,
+    interfaces          : Vec<Index>,
+    fields              : Vec<FieldInfo>,
+    methods             : Vec<Method>,
     pub attributes          : Vec<Attribute>,
 }
 
@@ -37,8 +39,22 @@ impl ClassFile {
       }
    }
 
+
    pub fn get_version(&self) -> String {
        self.version.to_string()
+   }
+
+   // todo change to <Interface>
+   pub fn get_interfaces(&self) -> Iter<Index> {
+       self.interfaces.iter()
+   }
+   
+   pub fn get_fields(&self) -> Iter<FieldInfo> {
+       self.fields.iter()
+   }
+
+   pub fn get_methods(&self) -> Iter<Method> {
+       self.methods.iter()
    }
 }
 
