@@ -111,12 +111,22 @@ impl fmt::Display for LiteralInfo {
     }
 }
 
-
 struct FieldInfo {
     access_flags: u16, // todo Enum
     name_index: Index,
     descriptor_index: Index,
     attributes : Vec<Attribute>,
+}
+
+impl FieldInfo {
+   fn new(reader: &mut ClassFileReader) -> Self {
+       FieldInfo {
+           access_flags: reader.read_u16(),
+           name_index:  reader.read_constant_index(),
+           descriptor_index: reader.read_constant_index(),
+           attributes: reader.read_attributes(),
+       }
+   }
 }
 
 #[derive(Debug)] // todo format numbers to say 17.0
@@ -147,7 +157,7 @@ impl Code {
             stack: reader.read_u16(),
             locals: reader.read_u16(),
             args_size: reader.read_u16(),
-            byte_code: reader.read_vec_u8(),
+            byte_code: reader.read_vec_len_u32(),
         }
     }
 }
@@ -275,47 +285,30 @@ impl ClassFileReader {
        interfaces
    }
 
-   fn read_field(&mut self) -> FieldInfo {
-       FieldInfo {
-           access_flags : self.read_u16(),
-           name_index  :  self.read_constant_index(),
-           descriptor_index : self.read_constant_index(),
-           attributes : self.read_attributes(),
-       }
-   }
-
    fn read_fields(&mut self) -> Vec<FieldInfo> {
        let mut count =  self.read_u16();
        let mut fields = Vec::<FieldInfo>::with_capacity(count as usize);
        while count > 0 {
-           fields.push(self.read_field());
+           fields.push(FieldInfo::new(self));
            count -= 1;
        }
        fields
    }
 
-   fn read_vec_u8(&mut self) -> Vec<u8> {
-        let mut count = self.read_u32();
-        let mut info = Vec::<u8>::with_capacity(count as usize);
-        while count > 0 {
-            info.push(self.read_u8());
-            count -= 1;
-        }
-        info
-   }
-
-   fn read_attribute(&mut self) -> Attribute {
-        Attribute {
-            attribute_name_index : self.read_constant_index(),
-            info: self.read_vec_u8(),
-        }
+   fn read_vec_len_u32(&mut self) -> Vec<u8> {
+        let count = self.read_u32() as usize;
+        self.read_bytes(count)
    }
 
    fn read_attributes(&mut self) -> Vec<Attribute> {
        let mut count =  self.read_u16();
        let mut attributes = Vec::<Attribute>::with_capacity(count as usize);
        while count > 0 {
-           attributes.push(self.read_attribute());
+           attributes.push(
+               Attribute {
+                   attribute_name_index : self.read_constant_index(),
+                   info: self.read_vec_len_u32(),
+               });
            count -= 1;
        }
        attributes
