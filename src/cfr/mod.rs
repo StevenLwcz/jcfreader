@@ -1,11 +1,47 @@
+const JAVAP_FILE_NOT_FOUND: i32 = 1;
+const JAVA_MAGIC: u32 = 0xcafebabe;
+
+// todo provide iterators so can be private again ???
+pub struct ClassFile {
+    pub version             : JavaVersion,
+    pub constant_pool       : ConstantPool,
+    _access_flags       : u16, // to do  AccessFlags struct??
+    _this_class         : Index,
+    _super_class        : Index,
+    pub interfaces          : Vec<Index>,
+    pub fields              : Vec<FieldInfo>,
+    pub methods             : Vec<Method>,
+    pub attributes          : Vec<Attribute>,
+}
+
+// probably needs to return a Result of ClassFile and any errors found....
+
+impl ClassFile {
+    pub fn new(file_name: &String) -> Self {
+        let mut reader = ClassFileReader::new(&file_name);
+        if reader.read_u32() != JAVA_MAGIC {
+            eprintln!("javap: Not a java class file {}", reader.file_name);
+                        std::process::exit(JAVAP_FILE_NOT_FOUND);
+        };
+
+        Self {
+            version         : JavaVersion(reader.read_u16(), reader.read_u16()),
+            constant_pool   : ConstantPool::new(&mut reader),
+            _access_flags   : reader.read_u16(),
+            _this_class     : reader.read_constant_index(),
+            _super_class    : reader.read_constant_index(),
+            interfaces      : reader.read_interfaces(),
+            fields          : reader.read_fields(),
+            methods         : reader.read_methods(),
+            attributes      : reader.read_attributes(),
+      }
+   }
+}
+
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 use std::fmt;
-
-const JAVAP_FILE_NOT_FOUND: i32 = 1;
-
-const JAVA_MAGIC: u32 = 0xcafebabe;
 
     const TAG_UTF8: u8 = 1;
     const TAG_INTEGER: u8 = 3;
@@ -162,44 +198,8 @@ impl _Code {
     }
 }
 
-
 #[derive(Debug)] // todo format numbers to say 17.0
-pub struct JavaVersion(u16, u16);
-
-// todo provide iterators so can be private again
-pub struct ClassFile {
-    pub version             : JavaVersion,
-    pub constant_pool       : ConstantPool,
-    _access_flags       : u16, // to do  AccessFlags struct??
-    _this_class         : Index,
-    _super_class        : Index,
-    pub interfaces          : Vec<Index>,
-    pub fields              : Vec<FieldInfo>,
-    pub methods             : Vec<Method>,
-    pub attributes          : Vec<Attribute>,
-}
-
-impl ClassFile {
-    pub fn new(file_name: &String) -> Self {
-        let mut reader = ClassFileReader::new(&file_name);
-        if reader.read_u32() != JAVA_MAGIC {
-            eprintln!("javap: Not a java class file {}", reader.file_name);
-                        std::process::exit(JAVAP_FILE_NOT_FOUND);
-        };
-
-        Self {
-            version         : JavaVersion(reader.read_u16(), reader.read_u16()),
-            constant_pool   : ConstantPool::new(&mut reader),
-            _access_flags   : reader.read_u16(),
-            _this_class     : reader.read_constant_index(),
-            _super_class    : reader.read_constant_index(),
-            interfaces      : reader.read_interfaces(),
-            fields          : reader.read_fields(),
-            methods         : reader.read_methods(),
-            attributes      : reader.read_attributes(),
-      }
-   }
-}
+pub struct JavaVersion(pub u16, pub u16);
 
 struct ClassFileReader {
     file: File,
@@ -207,7 +207,7 @@ struct ClassFileReader {
 }
 
 impl ClassFileReader {
-    pub fn new(file_name: &String) -> Self {
+    fn new(file_name: &String) -> Self {
         Self {
             file : match File::open(file_name) {
                 Ok(r) => r,
@@ -236,7 +236,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => u16::from_be_bytes(buf),
             Err(err) => {
-                eprintln!("javap: error reading u16 {} - {}", self.file_name, err);
+                eprintln!("javap: error reading u16 {} - {}", self.file_name, err); 
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
@@ -490,23 +490,3 @@ impl ConstantPool {
 
 // }
 
-fn main() {
-    let file_name = "tests/files/test1.class".to_string();
-    let class_file = ClassFile::new(&file_name);
-
-    println!("{:?}", class_file.version);
-    // needs enumerate 
-    for info in &class_file.constant_pool.constant_info {
-        println!("{} // {}",  &info, class_file.constant_pool.get_item(&info.1));
-    }
-    println!("No intefaces {}", class_file.interfaces.len());
-    println!("No fields {}", class_file.fields.len());
-    println!("No methods {}", class_file.methods.len());
-    println!("No attributes {}", class_file.attributes.len());
-    for method in &class_file.methods {
-        println!("{}", class_file.constant_pool.get_item(&method.name_index));
-        println!("{}", class_file.constant_pool.get_item(&method.descriptor_index));
-        println!("{}", method.attributes.len());
-        println!("{:?}", method.attributes);
-    }
-}
