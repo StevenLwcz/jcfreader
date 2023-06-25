@@ -4,7 +4,7 @@ mod class_file_reader;
 
 use std::slice::Iter;
 
-use crate::java_class_file::class_file_reader::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, Attribute, ClassFileReader, JavaVersion};
+use crate::java_class_file::class_file_reader::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
@@ -19,7 +19,7 @@ pub struct ClassFile {
     interfaces          : Vec<Index>,
     fields              : Vec<FieldInfo>,
     methods             : Vec<MethodInfo>,
-    pub attributes          : Vec<Attribute>,
+    pub attributes          : Vec<AttributeInfo>,
 }
 
 // needs to return a Result<ClassFile><Error>  for any errors found..
@@ -72,7 +72,7 @@ impl ClassFile {
    }
 
   // pass back a vector of better things 
-   // pub fn get_attributes() -> Vec<Attribute>
+   // pub fn get_attributes() -> Vec<AttributeInfo>
 }
 
 } // mod java_class_file

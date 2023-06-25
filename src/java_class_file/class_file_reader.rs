@@ -115,7 +115,7 @@ pub struct FieldInfo {
     access_flags : u16, // todo Enum
     name_index : Index,
     descriptor_index: Index,
-    attributes: Vec<Attribute>,
+    attributes: Vec<AttributeInfo>,
 }
 
 impl FieldInfo {
@@ -130,7 +130,7 @@ impl FieldInfo {
 }
 
 #[derive(Debug)] // todo format numbers to say 17.0
-pub struct Attribute {
+pub struct AttributeInfo {
      attribute_name_index: Index,
      info: Vec<u8>,
 }
@@ -140,7 +140,7 @@ pub struct MethodInfo {
     access_flags: u16,
     pub name_index: Index,
     pub descriptor_index: Index,
-    pub attributes : Vec<Attribute>,
+    pub attributes : Vec<AttributeInfo>,
 }
 
 struct _Code {
@@ -270,12 +270,12 @@ impl ClassFileReader {
         self.read_bytes(count)
    }
 
-   pub fn read_attributes(&mut self) -> Vec<Attribute> {
+   pub fn read_attributes(&mut self) -> Vec<AttributeInfo> {
        let mut count =  self.read_u16();
-       let mut attributes = Vec::<Attribute>::with_capacity(count as usize);
+       let mut attributes = Vec::<AttributeInfo>::with_capacity(count as usize);
        while count > 0 {
            attributes.push(
-               Attribute {
+               AttributeInfo {
                    attribute_name_index : self.read_constant_index(),
                    info: self.read_vec_len_u32(),
                });
