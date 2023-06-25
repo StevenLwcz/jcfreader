@@ -136,8 +136,8 @@ pub struct Attribute {
 }
 
 #[derive(Debug)] 
-pub struct Method {
-    access_flags: u16, // todo enum
+pub struct MethodInfo {
+    access_flags: u16,
     pub name_index: Index,
     pub descriptor_index: Index,
     pub attributes : Vec<Attribute>,
@@ -284,12 +284,12 @@ impl ClassFileReader {
        attributes
    }
 
-   pub fn read_methods(&mut self) -> Vec<Method> {
+   pub fn read_methods(&mut self) -> Vec<MethodInfo> {
        let mut count =  self.read_u16();
-       let mut methods = Vec::<Method>::with_capacity(count as usize);
+       let mut methods = Vec::<MethodInfo>::with_capacity(count as usize);
        while count > 0 {
            methods.push(
-               Method {
+               MethodInfo {
                    access_flags : self.read_u16(),
                    name_index  :  self.read_constant_index(),
                    descriptor_index : self.read_constant_index(),

@@ -4,7 +4,7 @@ mod class_file_reader;
 
 use std::slice::Iter;
 
-use crate::java_class_file::class_file_reader::class_file_reader::{Index, ConstantPool, FieldInfo, Method, Attribute, ClassFileReader, JavaVersion};
+use crate::java_class_file::class_file_reader::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, Attribute, ClassFileReader, JavaVersion};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
@@ -18,7 +18,7 @@ pub struct ClassFile {
     _super_class        : Index,
     interfaces          : Vec<Index>,
     fields              : Vec<FieldInfo>,
-    methods             : Vec<Method>,
+    methods             : Vec<MethodInfo>,
     pub attributes          : Vec<Attribute>,
 }
 
@@ -67,7 +67,7 @@ impl ClassFile {
 
   // to do transofrm the method struct to an expanded version and 
   // pass back a vector of better things 
-   pub fn get_methods(&self) -> Iter<Method> {
+   pub fn get_methods(&self) -> Iter<MethodInfo> {
        self.methods.iter()
    }
 
