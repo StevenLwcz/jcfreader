@@ -137,7 +137,7 @@ pub struct AttributeInfo {
 
 #[derive(Debug)] 
 pub struct MethodInfo {
-    access_flags: u16,
+    pub access_flags: u16,
     pub name_index: Index,
     pub descriptor_index: Index,
     pub attributes : Vec<AttributeInfo>,

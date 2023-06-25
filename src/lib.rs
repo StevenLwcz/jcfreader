@@ -69,7 +69,9 @@ impl ClassFile {
    pub fn get_methods(&self) -> Vec<Method> {
        self.methods.iter().map(|m| {
            Method {
+              flags: m.access_flags, 
               name: self.constant_pool.get_item(&m.name_index),
+              descriptor: self.constant_pool.get_item(&m.descriptor_index),
            }
         })
         .collect()
@@ -80,12 +82,17 @@ impl ClassFile {
 }
 
 pub struct Method {
+    flags: u16,
     name: String,
+    descriptor: String,
 }
 
 impl Method {
     pub fn get_name(&self) -> &String {
         &self.name 
+    }
+    pub fn get_descriptor(&self) -> &String {
+        &self.descriptor
     }
 }
 

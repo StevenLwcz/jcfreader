@@ -7,5 +7,6 @@ fn main() {
     println!("{}", class_file.get_version());
     for method in class_file.get_methods() {
         println!("{}", method.get_name());
+        println!("{}", method.get_descriptor());
     }
 }
