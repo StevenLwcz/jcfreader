@@ -1,4 +1,7 @@
+pub mod java_class_file {
+
 use std::slice::Iter;
+use class_file_reader::{Index, ConstantPool, FieldInfo, Method, Attribute, ClassFileReader, JavaVersion};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
@@ -70,12 +73,14 @@ impl ClassFile {
 }
 
 
-// todo put in sub module
+mod class_file_reader {
 
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 use std::fmt;
+
+const JAVAP_FILE_NOT_FOUND: i32 = 1;
 
     const TAG_UTF8: u8 = 1;
     const TAG_INTEGER: u8 = 3;
@@ -189,7 +194,7 @@ pub struct FieldInfo {
 }
 
 impl FieldInfo {
-   fn new(reader: &mut ClassFileReader) -> Self {
+   pub fn new(reader: &mut ClassFileReader) -> Self {
        FieldInfo {
            access_flags: reader.read_u16(),
            name_index:  reader.read_constant_index(),
@@ -232,7 +237,7 @@ impl _Code {
     }
 }
 
-struct JavaVersion(u16, u16);
+pub struct JavaVersion(pub u16, pub u16);
 
 impl fmt::Display for JavaVersion {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
@@ -240,13 +245,13 @@ impl fmt::Display for JavaVersion {
     }
 }
 
-struct ClassFileReader {
+pub struct ClassFileReader {
     file: File,
-    file_name: String,
+    pub file_name: String,
 }
 
 impl ClassFileReader {
-    fn new(file_name: &String) -> Self {
+    pub fn new(file_name: &String) -> Self {
         Self {
             file : match File::open(file_name) {
                 Ok(r) => r,
@@ -259,7 +264,7 @@ impl ClassFileReader {
         }
     }
 
-    fn read_u32(&mut self) -> u32 {
+    pub fn read_u32(&mut self) -> u32 {
         let mut buf = [0; 4];
         match self.file.read_exact(&mut buf) {
             Ok(_) => u32::from_be_bytes(buf),
@@ -270,7 +275,7 @@ impl ClassFileReader {
         }
     }
 
-    fn read_u16(&mut self) -> u16 {
+    pub fn read_u16(&mut self) -> u16 {
         let mut buf = [0; 2];
         match self.file.read_exact(&mut buf) {
             Ok(_) => u16::from_be_bytes(buf),
@@ -303,7 +308,7 @@ impl ClassFileReader {
         }
     }
 
-    fn read_constant_index(&mut self) -> Index {
+    pub fn read_constant_index(&mut self) -> Index {
         Index::Single(self.read_u16())
     }
 
@@ -315,7 +320,7 @@ impl ClassFileReader {
         Index::Ref(self.read_u16(), self.read_u16())
     }
 
-   fn read_interfaces(&mut self) -> Vec<Index> {
+   pub fn read_interfaces(&mut self) -> Vec<Index> {
        let mut count =  self.read_u16();
        let mut interfaces = Vec::<Index>::with_capacity(count as usize);
        while count > 0 {
@@ -325,7 +330,7 @@ impl ClassFileReader {
        interfaces
    }
 
-   fn read_fields(&mut self) -> Vec<FieldInfo> {
+   pub fn read_fields(&mut self) -> Vec<FieldInfo> {
        let mut count =  self.read_u16();
        let mut fields = Vec::<FieldInfo>::with_capacity(count as usize);
        while count > 0 {
@@ -340,7 +345,7 @@ impl ClassFileReader {
         self.read_bytes(count)
    }
 
-   fn read_attributes(&mut self) -> Vec<Attribute> {
+   pub fn read_attributes(&mut self) -> Vec<Attribute> {
        let mut count =  self.read_u16();
        let mut attributes = Vec::<Attribute>::with_capacity(count as usize);
        while count > 0 {
@@ -354,7 +359,7 @@ impl ClassFileReader {
        attributes
    }
 
-   fn read_methods(&mut self) -> Vec<Method> {
+   pub fn read_methods(&mut self) -> Vec<Method> {
        let mut count =  self.read_u16();
        let mut methods = Vec::<Method>::with_capacity(count as usize);
        while count > 0 {
@@ -379,7 +384,7 @@ pub struct ConstantPool {
 }
 
 impl ConstantPool {
-    fn new(reader: &mut ClassFileReader) -> Self {
+    pub fn new(reader: &mut ClassFileReader) -> Self {
         let count = reader.read_u16();
         let mut cp = Self {
             constant_info : Vec::<ConstantInfo>::with_capacity(count as usize),
@@ -529,3 +534,6 @@ impl ConstantPool {
 
 // }
 
+} // mod class_file_reader
+
+} // mod class_file
