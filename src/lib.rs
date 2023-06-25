@@ -65,14 +65,28 @@ impl ClassFile {
        self.fields.iter()
    }
 
-  // to do transofrm the method struct to an expanded version and 
-  // pass back a vector of better things 
-   pub fn get_methods(&self) -> Iter<MethodInfo> {
-       self.methods.iter()
+   // todo Beef up Method struct
+   pub fn get_methods(&self) -> Vec<Method> {
+       self.methods.iter().map(|m| {
+           Method {
+              name: self.constant_pool.get_item(&m.name_index),
+           }
+        })
+        .collect()
    }
 
   // pass back a vector of better things 
    // pub fn get_attributes() -> Vec<AttributeInfo>
+}
+
+pub struct Method {
+    name: String,
+}
+
+impl Method {
+    pub fn get_name(&self) -> &String {
+        &self.name 
+    }
 }
 
 } // mod java_class_file
