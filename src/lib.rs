@@ -59,13 +59,17 @@ impl ClassFile {
        self.interfaces.iter()
    }
    
-  // to do transofrm the FieldInfo  struct to an expanded version and 
-  // pass back a vector of better things 
-   pub fn get_fields(&self) -> Iter<FieldInfo> {
-       self.fields.iter()
+   pub fn get_fields(&self) -> Vec<Field> {
+       self.fields.iter().map(|m| {
+           Field {
+              flags: m.access_flags, 
+              name: self.constant_pool.get_item(&m.name_index),
+              descriptor: self.constant_pool.get_item(&m.descriptor_index),
+           }
+        })
+        .collect()
    }
 
-   // todo Beef up Method struct
    pub fn get_methods(&self) -> Vec<Method> {
        self.methods.iter().map(|m| {
            Method {
@@ -88,6 +92,27 @@ pub struct Method {
 }
 
 impl Method {
+    pub fn get_flags(&self) -> &u16 {
+        &self.flags
+    }
+    pub fn get_name(&self) -> &String {
+        &self.name 
+    }
+    pub fn get_descriptor(&self) -> &String {
+        &self.descriptor
+    }
+}
+
+pub struct Field {
+    flags: u16,
+    name: String,
+    descriptor: String,
+}
+
+impl Field {
+    pub fn get_flags(&self) -> &u16 {
+        &self.flags
+    }
     pub fn get_name(&self) -> &String {
         &self.name 
     }

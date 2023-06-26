@@ -112,10 +112,10 @@ impl fmt::Display for LiteralInfo {
 }
 
 pub struct FieldInfo {
-    access_flags : u16, // todo Enum
-    name_index : Index,
-    descriptor_index: Index,
-    attributes: Vec<AttributeInfo>,
+    pub access_flags : u16, // todo Enum
+    pub name_index : Index,
+    pub descriptor_index: Index,
+    pub attributes: Vec<AttributeInfo>,
 }
 
 impl FieldInfo {
@@ -129,13 +129,11 @@ impl FieldInfo {
    }
 }
 
-#[derive(Debug)] // todo format numbers to say 17.0
 pub struct AttributeInfo {
-     attribute_name_index: Index,
-     info: Vec<u8>,
+     pub attribute_name_index: Index,
+     pub info: Vec<u8>,
 }
 
-#[derive(Debug)] 
 pub struct MethodInfo {
     pub access_flags: u16,
     pub name_index: Index,
