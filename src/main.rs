@@ -13,7 +13,6 @@ fn main() {
         println!("{}", method.get_name());
         println!("{}", method.get_descriptor());
     }
-    for attribute in class_file.get_attributes() {
-        println!("{}", attribute.get_name());
-    }
+    let attr = class_file.get_class_attributes();
+    println!("{:?}", attr.source_file);
 }

@@ -81,16 +81,21 @@ impl ClassFile {
         .collect()
    }
 
-   pub fn get_attributes(&self) -> Vec<Attribute> {
-       self.attributes.iter().map(|m| {
-           Attribute {
-              name: self.constant_pool.get_item(&m.attribute_name_index),
-           }
-        })
-        .collect()
+   pub fn get_class_attributes(&self) -> ClassAttributes {
+       ClassAttributes::new(self)
    }
 
-}
+   // pub fn get_attributes(&self) -> Vec<Attribute> {
+       // self.attributes.iter().map(|m| {
+           // Attribute {
+              // name: self.constant_pool.get_item(&m.attribute_name_index),
+              // info: m.info.to_owned(),
+           // }
+        // })
+        // .collect()
+   // }
+
+} // ClassFile
 
 pub struct Method {
     flags: u16,
@@ -128,14 +133,46 @@ impl Field {
     }
 }
 
-pub struct Attribute {
-    name: String,
+// pub struct Attribute {
+    // name: String,
+    // info: Vec<u8>
+// }
+
+// impl Attribute {
+    // pub fn get_name(&self) -> &String {
+        // &self.name 
+    // }
+
+    // pub fn get_info(&self) -> &Vec<u8> {
+        // &self.info 
+    // }
+// }
+
+#[derive(Default)]
+pub struct ClassAttributes {
+    pub source_file: Option<String>,
+    // etc
 }
 
-impl Attribute {
-    pub fn get_name(&self) -> &String {
-        &self.name 
+impl ClassAttributes {
+    fn new(class_file: &ClassFile) -> Self {
+        let mut source_file : Option<String> = None;
+
+        for a in &class_file.attributes {
+            let name = &class_file.constant_pool.get_item(&a.attribute_name_index);
+                match name.as_str() {
+                    "SourceFile" => {
+                        let index = u16::from_be_bytes(a.info[0..2].try_into().unwrap());
+                        source_file = Some(class_file.constant_pool.get_item(&Index::Single(index)));
+                    }
+                    &_ => todo!(),
+            }
+        }
+        Self {
+           source_file,
+        }
     }
 }
+
 
 } // mod java_class_file

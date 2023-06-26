@@ -102,10 +102,10 @@ pub enum LiteralInfo {
 impl fmt::Display for LiteralInfo {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LiteralInfo::String(s) => write!(f, "{} ", s),
-            LiteralInfo::Integer(i) => write!(f, "{} ", i),
-            LiteralInfo::Long(l) => write!(f, "{} ", l),
-            LiteralInfo::Double(d) => write!(f, "{} ", d),
+            LiteralInfo::String(s) => write!(f, "{}", s),
+            LiteralInfo::Integer(i) => write!(f, "{}", i),
+            LiteralInfo::Long(l) => write!(f, "{}", l),
+            LiteralInfo::Double(d) => write!(f, "{}", d),
             &LiteralInfo::Float(_) => todo!(),
         }
     }
