@@ -244,21 +244,19 @@ impl ClassFileReader {
     }
 
    pub fn read_interfaces(&mut self) -> Vec<Index> {
-       let mut count =  self.read_u16();
+       let count =  self.read_u16();
        let mut interfaces = Vec::<Index>::with_capacity(count as usize);
-       while count > 0 {
+       for _ in 0..count {
            interfaces.push(self.read_constant_index());
-           count -= 1;
        }
        interfaces
    }
 
    pub fn read_fields(&mut self) -> Vec<FieldInfo> {
-       let mut count =  self.read_u16();
+       let count =  self.read_u16();
        let mut fields = Vec::<FieldInfo>::with_capacity(count as usize);
-       while count > 0 {
+       for _ in 0..count {
            fields.push(FieldInfo::new(self));
-           count -= 1;
        }
        fields
    }
@@ -269,23 +267,22 @@ impl ClassFileReader {
    }
 
    pub fn read_attributes(&mut self) -> Vec<AttributeInfo> {
-       let mut count =  self.read_u16();
+       let count =  self.read_u16();
        let mut attributes = Vec::<AttributeInfo>::with_capacity(count as usize);
-       while count > 0 {
+       for _ in 0..count {
            attributes.push(
                AttributeInfo {
                    attribute_name_index : self.read_constant_index(),
                    info: self.read_vec_len_u32(),
                });
-           count -= 1;
        }
        attributes
    }
 
    pub fn read_methods(&mut self) -> Vec<MethodInfo> {
-       let mut count =  self.read_u16();
+       let count =  self.read_u16();
        let mut methods = Vec::<MethodInfo>::with_capacity(count as usize);
-       while count > 0 {
+       for _ in 0..count {
            methods.push(
                MethodInfo {
                    access_flags : self.read_u16(),
@@ -293,7 +290,6 @@ impl ClassFileReader {
                    descriptor_index : self.read_constant_index(),
                    attributes : self.read_attributes(),
            });
-           count -= 1;
        }
        methods
    }
