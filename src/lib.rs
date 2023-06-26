@@ -81,8 +81,15 @@ impl ClassFile {
         .collect()
    }
 
-  // pass back a vector of better things 
-   // pub fn get_attributes() -> Vec<AttributeInfo>
+   pub fn get_attributes(&self) -> Vec<Attribute> {
+       self.attributes.iter().map(|m| {
+           Attribute {
+              name: self.constant_pool.get_item(&m.attribute_name_index),
+           }
+        })
+        .collect()
+   }
+
 }
 
 pub struct Method {
@@ -118,6 +125,16 @@ impl Field {
     }
     pub fn get_descriptor(&self) -> &String {
         &self.descriptor
+    }
+}
+
+pub struct Attribute {
+    name: String,
+}
+
+impl Attribute {
+    pub fn get_name(&self) -> &String {
+        &self.name 
     }
 }
 

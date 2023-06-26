@@ -13,4 +13,7 @@ fn main() {
         println!("{}", method.get_name());
         println!("{}", method.get_descriptor());
     }
+    for attribute in class_file.get_attributes() {
+        println!("{}", attribute.get_name());
+    }
 }
