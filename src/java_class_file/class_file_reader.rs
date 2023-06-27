@@ -27,7 +27,7 @@ const JAVAP_FILE_NOT_FOUND: i32 = 1;
 
 enum Tag {
     Utf8,
-    _Integer = 3,
+    Integer = 3,
     _Float,
     _Long,
     _Double,
@@ -48,7 +48,7 @@ impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Tag::Utf8 =>      write!(f, "Utf8              "),
-            Tag::_Integer =>  write!(f, "Integer           "),
+            Tag::Integer =>  write!(f, "Integer           "),
             Tag::_Float =>    write!(f, "Float             "),
             Tag::_Long =>     write!(f, "Long              "),
             Tag::_Double =>   write!(f, "Double            "),
@@ -93,9 +93,9 @@ impl fmt::Display for ConstantInfo {
 
 pub enum LiteralInfo {
     String(String),
-    Integer(i32), 
+    Integer(u32), 
     Float(f32),
-    Long(i64),
+    Long(u64),
     Double(f64),
 }
 
@@ -319,7 +319,7 @@ impl ConstantPool {
 
             let info = match tag {
                 TAG_UTF8 => self.read_utf8(index, reader),
-                TAG_INTEGER => self.read_integer(reader),
+                TAG_INTEGER => self.read_integer(index, reader),
                 TAG_FLOAT => self.read_float(reader),
                 TAG_LONG => self.read_long(reader),
                 TAG_DOUBLE => self.read_double(reader),
@@ -364,8 +364,10 @@ impl ConstantPool {
         ConstantInfo(Tag::Utf8, Index::Single(index))  
     }
 
-    fn read_integer(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+    fn read_integer(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
+      let i = reader.read_u32();
+      self.literal_pool.insert(index, LiteralInfo::Integer(i));
+      ConstantInfo(Tag::Integer, Index::Single(index))
     }
 
     fn read_float(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
