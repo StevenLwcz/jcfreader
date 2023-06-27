@@ -179,7 +179,7 @@ impl ClassFileReader {
             file : match File::open(file_name) {
                 Ok(r) => r,
                 Err(err) => {
-                    eprintln!("javap: Can't open file {} - {}", &file_name, err);
+                    eprintln!("jcfreader: Can't open file {} - {}", &file_name, err);
                     std::process::exit(JAVAP_FILE_NOT_FOUND);
                 }
             },
@@ -192,7 +192,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => u32::from_be_bytes(buf),
             Err(err) => {
-                eprintln!("javap: error reading u32 {} - {}", self.file_name, err);
+                eprintln!("jcfreader: error reading u32 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
@@ -203,7 +203,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => u16::from_be_bytes(buf),
             Err(err) => {
-                eprintln!("javap: error reading u16 {} - {}", self.file_name, err); 
+                eprintln!("jcfreader: error reading u16 {} - {}", self.file_name, err); 
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
@@ -214,7 +214,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => u8::from_be_bytes(buf),
             Err(err) => {
-                eprintln!("javap: error reading u8 {} - {}", self.file_name, err);
+                eprintln!("jcfreader: error reading u8 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
@@ -225,7 +225,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => buf,
             Err(err) => {
-                eprintln!("javap: error reading n bytes {} - {}", self.file_name, err);
+                eprintln!("jcfreader: error reading n bytes {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
