@@ -149,31 +149,35 @@ impl Field {
 // }
 
 #[derive(Debug)]
-pub struct RuntimeVisibleAnnotations {
-    attribute_name: String,
-    // annotation: Vec<Vec<u8>>,
+pub struct Annotation {
+    //type: String,
+    type_index: u16,
+    // element_value_pair: Vec<u8>,
 }
 
-impl RuntimeVisibleAnnotations {
+impl Annotation {
     fn new(class_file: &ClassFile, info: &Vec<u8>) -> Self {
-        let index = u16::from_be_bytes(info[0..2].try_into().unwrap());
+        let type_index = u16::from_be_bytes(info[0..2].try_into().unwrap());
+        println!("type_index {}", type_index);
         Self {
-            attribute_name : class_file.constant_pool.get_item(&Index::Single(index)),
+            type_index,
         }
     }
 }
 
+
+
 #[derive(Default)]
 pub struct ClassAttributes {
     pub source_file: Option<String>,
-    pub runtime_visible_annotations: Option<RuntimeVisibleAnnotations>,
+    pub runtime_visible_annotations: Option<Vec<Annotation>>,
     // etc
 }
 
 impl ClassAttributes {
     fn new(class_file: &ClassFile) -> Self {
         let mut source_file : Option<String> = None;
-        let mut runtime_visible_annotations : Option<RuntimeVisibleAnnotations> = None;
+        let mut runtime_visible_annotations : Option<Vec<Annotation>> = None;
 
         for a in &class_file.attributes {
             let name = &class_file.constant_pool.get_item(&a.attribute_name_index);
@@ -183,7 +187,7 @@ impl ClassAttributes {
                         source_file = Some(class_file.constant_pool.get_item(&Index::Single(index)));
                     },
                     "RuntimeVisibleAnnotations" => { 
-                        runtime_visible_annotations = Some(RuntimeVisibleAnnotations::new(&class_file, &a.info));
+                        runtime_visible_annotations = Some(ClassAttributes::get_annotations(&class_file, &a.info));
                     }
                     "SourceDebugExtension" => (),
                     &_ => todo!("{}", name),
@@ -192,6 +196,17 @@ impl ClassAttributes {
         Self {
            source_file, runtime_visible_annotations,
         }
+    }
+
+
+    fn get_annotations(class_file: &ClassFile, info: &Vec<u8>) -> Vec<Annotation> {
+        let num = u16::from_be_bytes(info[0..2].try_into().unwrap());
+        let mut annotations = Vec::<Annotation>::with_capacity(num as usize);
+        for _ in 0..num {
+            let annotation = Annotation::new(&class_file, &info);
+            annotations.push(annotation);
+        }
+        annotations
     }
 }
 

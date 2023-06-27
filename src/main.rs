@@ -6,13 +6,13 @@ fn main() {
     let class_file = java_class_file::ClassFile::new(&file_name);
 
     println!("{}", class_file.get_version());
+    println!("Fields");
     for field in class_file.get_fields() {
-        println!("{}", field.get_name());
-        println!("{}", field.get_descriptor());
+        println!("{}: {}", field.get_name(), field.get_descriptor());
     }
+    println!("Methods");
     for method in class_file.get_methods() {
-        println!("{}", method.get_name());
-        println!("{}", method.get_descriptor());
+        println!("{}: {}", method.get_name(), method.get_descriptor());
     }
     let attr = class_file.get_class_attributes();
     println!("SourceFile {:?}", attr.source_file);
