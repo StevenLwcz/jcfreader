@@ -164,8 +164,8 @@ impl ClassAttributes {
                     "SourceFile" => {
                         let index = u16::from_be_bytes(a.info[0..2].try_into().unwrap());
                         source_file = Some(class_file.constant_pool.get_item(&Index::Single(index)));
-                    }
-                    &_ => todo!(),
+                    },
+                    &_ => todo!("{}", name),
             }
         }
         Self {
