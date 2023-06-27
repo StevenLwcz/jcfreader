@@ -148,15 +148,32 @@ impl Field {
     // }
 // }
 
+#[derive(Debug)]
+pub struct RuntimeVisibleAnnotations {
+    attribute_name: String,
+    // annotation: Vec<Vec<u8>>,
+}
+
+impl RuntimeVisibleAnnotations {
+    fn new(class_file: &ClassFile, info: &Vec<u8>) -> Self {
+        let index = u16::from_be_bytes(info[0..2].try_into().unwrap());
+        Self {
+            attribute_name : class_file.constant_pool.get_item(&Index::Single(index)),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct ClassAttributes {
     pub source_file: Option<String>,
+    pub runtime_visible_annotations: Option<RuntimeVisibleAnnotations>,
     // etc
 }
 
 impl ClassAttributes {
     fn new(class_file: &ClassFile) -> Self {
         let mut source_file : Option<String> = None;
+        let mut runtime_visible_annotations : Option<RuntimeVisibleAnnotations> = None;
 
         for a in &class_file.attributes {
             let name = &class_file.constant_pool.get_item(&a.attribute_name_index);
@@ -165,11 +182,15 @@ impl ClassAttributes {
                         let index = u16::from_be_bytes(a.info[0..2].try_into().unwrap());
                         source_file = Some(class_file.constant_pool.get_item(&Index::Single(index)));
                     },
+                    "RuntimeVisibleAnnotations" => { 
+                        runtime_visible_annotations = Some(RuntimeVisibleAnnotations::new(&class_file, &a.info));
+                    }
+                    "SourceDebugExtension" => (),
                     &_ => todo!("{}", name),
             }
         }
         Self {
-           source_file,
+           source_file, runtime_visible_annotations,
         }
     }
 }

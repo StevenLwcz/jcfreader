@@ -15,5 +15,6 @@ fn main() {
         println!("{}", method.get_descriptor());
     }
     let attr = class_file.get_class_attributes();
-    println!("{:?}", attr.source_file);
+    println!("SourceFile {:?}", attr.source_file);
+    println!("RuntimeVisibleAnnotations {:?}", attr.runtime_visible_annotations);
 }
