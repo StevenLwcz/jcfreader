@@ -1,5 +1,3 @@
-pub mod class_file_reader {
-
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
@@ -454,6 +452,3 @@ impl ConstantPool {
     // }
 
 // }
-
-} // mod class_file_reader
-

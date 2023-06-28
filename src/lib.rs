@@ -4,7 +4,7 @@ mod class_file_reader;
 
 use std::slice::Iter;
 
-use crate::java_class_file::class_file_reader::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion};
+use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
