@@ -3,6 +3,7 @@ pub mod java_class_file {
 mod class_file_reader;
 
 use std::slice::Iter;
+use std::io::Read;
 
 use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion};
 
@@ -150,22 +151,52 @@ impl Field {
 
 #[derive(Debug)]
 pub struct Annotation {
-    //type: String,
-    type_index: u16,
-    // element_value_pair: Vec<u8>,
+    type_index: u16, //type: String,
+    value_pair: Vec<ValuePair>,
 }
 
 impl Annotation {
-    fn new(class_file: &ClassFile, info: &Vec<u8>) -> Self {
-        let type_index = u16::from_be_bytes(info[0..2].try_into().unwrap());
-        println!("type_index {}", type_index);
+    fn new(reader: &mut AnnotationReader) -> Self {
+        let type_index = reader.read_u16();
+        let mut pairs = Vec::<ValuePair>::new();
+        
+        let num = reader.read_u16();
+
+        for _ in 0..num {
+            pairs.push(ValuePair::new(reader));
+        }
+
         Self {
             type_index,
+            value_pair: pairs,
         }
     }
 }
 
+#[derive(Debug)]
+struct ValuePair {
+    name_index: u16,
+    value_index: u16, // enum of possible values
+}
 
+impl ValuePair {
+    fn new(reader: &mut AnnotationReader) -> Self {
+        let name_index = reader.read_u16();
+
+        let tag = char::from( reader.read_u8());
+        let mut value_index = 0;
+        match tag {
+            'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  
+                value_index = reader.read_u16(),
+            _ => todo!(),
+        }
+
+        Self {
+            name_index,
+            value_index,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct ClassAttributes {
@@ -198,17 +229,46 @@ impl ClassAttributes {
         }
     }
 
-
-    fn get_annotations(class_file: &ClassFile, info: &Vec<u8>) -> Vec<Annotation> {
-        let num = u16::from_be_bytes(info[0..2].try_into().unwrap());
+    fn get_annotations(_class_file: &ClassFile, info: &Vec<u8>) -> Vec<Annotation> {
+        let mut reader = AnnotationReader::new(info);
+        let num = reader.read_u16();
         let mut annotations = Vec::<Annotation>::with_capacity(num as usize);
-        for _ in 0..num {
-            let annotation = Annotation::new(&class_file, &info);
+        for i in 0..num {
+            let annotation = Annotation::new(&mut reader);
             annotations.push(annotation);
         }
         annotations
     }
 }
 
+struct AnnotationReader<'a> {
+    bytes: &'a [u8],
+}
+
+impl <'a>AnnotationReader<'a> {
+    fn new(info: &'a Vec<u8>) -> Self {
+       Self {
+           bytes: info 
+       }
+    }
+
+    fn read_u16(&mut self) -> u16 {
+        let mut buf = [0; 2];
+        self.bytes.read_exact(&mut buf).unwrap();
+        u16::from_be_bytes(buf)
+    }
+
+    fn read_u8(&mut self) -> u8 {
+        let mut buf = [0; 1];
+        self.bytes.read_exact(&mut buf).unwrap();
+        u8::from_be_bytes(buf)
+    }
+
+    // fn read_vec_u8(&mut self) -> Vec<u8> {
+        // let mut buf = Vec::<u8>::new();
+        // self.bytes.read_to_end(&mut buf).unwrap();
+        // buf
+    // }
+}
 
 } // mod java_class_file
