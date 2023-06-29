@@ -134,21 +134,6 @@ impl Field {
     }
 }
 
-// pub struct Attribute {
-    // name: String,
-    // info: Vec<u8>
-// }
-
-// impl Attribute {
-    // pub fn get_name(&self) -> &String {
-        // &self.name 
-    // }
-
-    // pub fn get_info(&self) -> &Vec<u8> {
-        // &self.info 
-    // }
-// }
-
 #[derive(Debug)]
 pub struct Annotation {
     // type_index: u16, 
@@ -266,12 +251,6 @@ impl <'a>AnnotationReader<'a> {
         self.bytes.read_exact(&mut buf).unwrap();
         u8::from_be_bytes(buf)
     }
-
-    // fn read_vec_u8(&mut self) -> Vec<u8> {
-        // let mut buf = Vec::<u8>::new();
-        // self.bytes.read_to_end(&mut buf).unwrap();
-        // buf
-    // }
 }
 
 } // mod java_class_file
