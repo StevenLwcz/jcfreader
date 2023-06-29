@@ -370,15 +370,15 @@ impl ConstantPool {
     }
 
     fn read_float(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Float")
     }
 
     fn read_long(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Long")
     }
 
     fn read_double(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Double")
     }
 
     fn read_class(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
@@ -394,27 +394,27 @@ impl ConstantPool {
     }
 
     fn read_method_handle(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Handle")
     }
 
     fn read_method_type(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Method Type")
     }
 
     fn read_dynamic(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Dynamic")
     }
 
     fn read_invoke_dynamic(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Invoke Dynamic")
     }
 
     fn read_module(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Module")
     }
 
     fn read_package(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!()
+      todo!("Package")
     }
 
 

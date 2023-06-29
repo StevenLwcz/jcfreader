@@ -13,7 +13,7 @@ const JAVA_MAGIC: u32 = 0xcafebabe;
 // todo provide iterators so can be private again ???
 pub struct ClassFile {
     version             : JavaVersion,
-    pub constant_pool       : ConstantPool,
+    constant_pool       : ConstantPool,
     _access_flags       : u16, // to do  AccessFlags struct??
     _this_class         : Index,
     _super_class        : Index,
