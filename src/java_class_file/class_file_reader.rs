@@ -26,9 +26,9 @@ const JAVAP_FILE_NOT_FOUND: i32 = 1;
 enum Tag {
     Utf8,
     Integer = 3,
-    _Float,
-    _Long,
-    _Double,
+    Float,
+    Long,
+    Double,
     Class,
     String,
     FieldRef,
@@ -47,9 +47,9 @@ impl fmt::Display for Tag {
         match self {
             Tag::Utf8 =>      write!(f, "Utf8              "),
             Tag::Integer =>  write!(f, "Integer           "),
-            Tag::_Float =>    write!(f, "Float             "),
-            Tag::_Long =>     write!(f, "Long              "),
-            Tag::_Double =>   write!(f, "Double            "),
+            Tag::Float =>    write!(f, "Float             "),
+            Tag::Long =>     write!(f, "Long              "),
+            Tag::Double =>   write!(f, "Double            "),
             Tag::Class =>     write!(f, "Class             "),
             Tag::String =>    write!(f, "String            "),
             Tag::FieldRef =>  write!(f, "FieldRef          "),
@@ -186,6 +186,39 @@ impl ClassFileReader {
         }
     }
 
+    pub fn read_f64(&mut self) -> f64 {
+        let mut buf = [0; 8];
+        match self.file.read_exact(&mut buf) {
+            Ok(_) => f64::from_be_bytes(buf),
+            Err(err) => {
+                eprintln!("jcfreader: error reading f64 {} - {}", self.file_name, err);
+                std::process::exit(JAVAP_FILE_NOT_FOUND);
+            }
+        }
+    }
+
+    pub fn read_f32(&mut self) -> f32 {
+        let mut buf = [0; 4];
+        match self.file.read_exact(&mut buf) {
+            Ok(_) => f32::from_be_bytes(buf),
+            Err(err) => {
+                eprintln!("jcfreader: error reading f32 {} - {}", self.file_name, err);
+                std::process::exit(JAVAP_FILE_NOT_FOUND);
+            }
+        }
+    }
+
+    pub fn read_u64(&mut self) -> u64 {
+        let mut buf = [0; 8];
+        match self.file.read_exact(&mut buf) {
+            Ok(_) => u64::from_be_bytes(buf),
+            Err(err) => {
+                eprintln!("jcfreader: error reading u64 {} - {}", self.file_name, err);
+                std::process::exit(JAVAP_FILE_NOT_FOUND);
+            }
+        }
+    }
+
     pub fn read_u32(&mut self) -> u32 {
         let mut buf = [0; 4];
         match self.file.read_exact(&mut buf) {
@@ -319,9 +352,9 @@ impl ConstantPool {
             let info = match tag {
                 TAG_UTF8 => self.read_utf8(index, reader),
                 TAG_INTEGER => self.read_integer(index, reader),
-                TAG_FLOAT => self.read_float(reader),
-                TAG_LONG => self.read_long(reader),
-                TAG_DOUBLE => self.read_double(reader),
+                TAG_FLOAT => self.read_float(index, reader),
+                TAG_LONG => self.read_long(index, reader),
+                TAG_DOUBLE => self.read_double(index, reader),
                 TAG_CLASS => self.read_class(reader),
                 TAG_STRING => self.read_string(reader), 
                 TAG_FIELDREF => self.read_field_ref(reader),
@@ -369,16 +402,22 @@ impl ConstantPool {
       ConstantInfo(Tag::Integer, Index::Single(index))
     }
 
-    fn read_float(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Float")
+    fn read_float(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
+      let f = reader.read_f32();
+      self.literal_pool.insert(index, LiteralInfo::Float(f));
+      ConstantInfo(Tag::Float, Index::Single(index))
     }
 
-    fn read_long(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Long")
+    fn read_long(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
+      let l = reader.read_u64();
+      self.literal_pool.insert(index, LiteralInfo::Long(l));
+      ConstantInfo(Tag::Long, Index::Single(index))
     }
 
-    fn read_double(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Double")
+    fn read_double(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
+      let d = reader.read_f64();
+      self.literal_pool.insert(index, LiteralInfo::Double(d));
+      ConstantInfo(Tag::Double, Index::Single(index))
     }
 
     fn read_class(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
