@@ -151,23 +151,25 @@ impl Field {
 
 #[derive(Debug)]
 pub struct Annotation {
-    type_index: u16, //type: String,
+    // type_index: u16, 
+    r#type: String,
     value_pair: Vec<ValuePair>,
 }
 
 impl Annotation {
-    fn new(reader: &mut AnnotationReader) -> Self {
-        let type_index = reader.read_u16();
+    fn new(reader: &mut AnnotationReader, class_file: &ClassFile) -> Self {
+        let index = reader.read_u16();
+        let r#type = class_file.constant_pool.get_item(&Index::Single(index));
         let mut pairs = Vec::<ValuePair>::new();
         
         let num = reader.read_u16();
 
         for _ in 0..num {
-            pairs.push(ValuePair::new(reader));
+            pairs.push(ValuePair::new(reader, &class_file));
         }
 
         Self {
-            type_index,
+            r#type,
             value_pair: pairs,
         }
     }
@@ -175,15 +177,16 @@ impl Annotation {
 
 #[derive(Debug)]
 struct ValuePair {
-    name_index: u16,
+    name: String,
     value_index: u16, // enum of possible values
 }
 
 impl ValuePair {
-    fn new(reader: &mut AnnotationReader) -> Self {
-        let name_index = reader.read_u16();
+    fn new(reader: &mut AnnotationReader, class_file: &ClassFile) -> Self {
+        let index = reader.read_u16();
+        let name = class_file.constant_pool.get_item(&Index::Single(index));
 
-        let tag = char::from( reader.read_u8());
+        let tag = char::from(reader.read_u8());
         let mut value_index = 0;
         match tag {
             'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  
@@ -192,7 +195,7 @@ impl ValuePair {
         }
 
         Self {
-            name_index,
+            name,
             value_index,
         }
     }
@@ -229,12 +232,12 @@ impl ClassAttributes {
         }
     }
 
-    fn get_annotations(_class_file: &ClassFile, info: &Vec<u8>) -> Vec<Annotation> {
+    fn get_annotations(class_file: &ClassFile, info: &Vec<u8>) -> Vec<Annotation> {
         let mut reader = AnnotationReader::new(info);
         let num = reader.read_u16();
         let mut annotations = Vec::<Annotation>::with_capacity(num as usize);
         for i in 0..num {
-            let annotation = Annotation::new(&mut reader);
+            let annotation = Annotation::new(&mut reader, &class_file);
             annotations.push(annotation);
         }
         annotations
