@@ -5,7 +5,7 @@ mod class_file_reader;
 use std::slice::Iter;
 use std::io::Read;
 
-use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion};
+use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion, LiteralInfo};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
@@ -136,7 +136,6 @@ impl Field {
 
 #[derive(Debug)]
 pub struct Annotation {
-    // type_index: u16, 
     r#type: String,
     value_pair: Vec<ValuePair>,
 }
@@ -163,7 +162,8 @@ impl Annotation {
 #[derive(Debug)]
 struct ValuePair {
     name: String,
-    value_index: u16, // enum of possible values
+    // value_index: u16, // enum of possible values
+    value: LiteralInfo,
 }
 
 impl ValuePair {
@@ -172,16 +172,18 @@ impl ValuePair {
         let name = class_file.constant_pool.get_item(&Index::Single(index));
 
         let tag = char::from(reader.read_u8());
-        let mut value_index = 0;
+        let mut value = LiteralInfo::Integer(0);
         match tag {
-            'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  
-                value_index = reader.read_u16(),
+            'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  {
+                let index = reader.read_u16();
+                value = class_file.constant_pool.get_literal(index).clone();
+            }
             _ => todo!(),
         }
 
         Self {
             name,
-            value_index,
+            value,
         }
     }
 }

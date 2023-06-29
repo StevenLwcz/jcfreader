@@ -89,6 +89,7 @@ impl fmt::Display for ConstantInfo {
     }
 }
 
+#[derive(Debug,Clone)]
 pub enum LiteralInfo {
     String(String),
     Integer(u32), 
@@ -417,7 +418,7 @@ impl ConstantPool {
     }
 
 
-    fn get_literal(&self, index: u16) -> &LiteralInfo {
+    pub fn get_literal(&self, index: u16) -> &LiteralInfo {
         self.literal_pool.get(&index).unwrap()
     }
 
