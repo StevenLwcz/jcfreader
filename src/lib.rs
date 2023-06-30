@@ -211,6 +211,7 @@ impl ClassAttributes {
                         runtime_visible_annotations = Some(ClassAttributes::get_annotations(&class_file, &a.info));
                     }
                     "SourceDebugExtension" => (),
+                    "InnerClasses" => (),
                     &_ => todo!("{}", name),
             }
         }
