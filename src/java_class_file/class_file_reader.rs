@@ -346,15 +346,21 @@ impl ConstantPool {
     }
 
     fn read_constant_pool(&mut self, count: u16, reader: &mut ClassFileReader) {
-        for index in 1..count {
+        let mut index = 1;
+        while index < count {
             let tag = reader.read_u8();
-
             let info = match tag {
                 TAG_UTF8 => self.read_utf8(index, reader),
                 TAG_INTEGER => self.read_integer(index, reader),
                 TAG_FLOAT => self.read_float(index, reader),
-                TAG_LONG => self.read_long(index, reader),
-                TAG_DOUBLE => self.read_double(index, reader),
+                TAG_LONG => { 
+                    index += 1;
+                    self.read_long(index - 1, reader)
+                },
+                TAG_DOUBLE => { 
+                    index += 1;
+                    self.read_double(index - 1, reader)
+                },
                 TAG_CLASS => self.read_class(reader),
                 TAG_STRING => self.read_string(reader), 
                 TAG_FIELDREF => self.read_field_ref(reader),
@@ -373,6 +379,7 @@ impl ConstantPool {
                 }
             };
             self.constant_info.push(info);
+            index += 1; 
         };
     }
 
@@ -391,7 +398,7 @@ impl ConstantPool {
     fn read_utf8(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
         let len = reader.read_u16();  
         let bytes = reader.read_bytes(len as usize);
-        let string = String::from_utf8(bytes).unwrap(); // todo add string to hashset
+        let string = String::from_utf8(bytes).unwrap(); 
         self.literal_pool.insert(index, LiteralInfo::String(string));
         ConstantInfo(Tag::Utf8, Index::Single(index))  
     }

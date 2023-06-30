@@ -223,7 +223,7 @@ impl ClassAttributes {
         let mut reader = AnnotationReader::new(info);
         let num = reader.read_u16();
         let mut annotations = Vec::<Annotation>::with_capacity(num as usize);
-        for i in 0..num {
+        for _ in 0..num {
             let annotation = Annotation::new(&mut reader, &class_file);
             annotations.push(annotation);
         }
