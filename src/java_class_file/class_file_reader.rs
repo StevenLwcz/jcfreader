@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 use std::fmt;
+use std::io::Seek;
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 
@@ -22,6 +23,7 @@ const JAVAP_FILE_NOT_FOUND: i32 = 1;
     const TAG_INVOKEDYNAMIC: u8 = 18;
     const TAG_MODULE: u8 = 19;
     const TAG_PACKAGE: u8 = 20;
+
 
 enum Tag {
     Utf8,
@@ -167,8 +169,15 @@ impl fmt::Display for JavaVersion {
     }
 }
 
+enum Dump {
+    Hex,
+    Byte,
+    None,
+}
+
 pub struct ClassFileReader {
     file: File,
+    mode: Dump,
     pub file_name: String,
 }
 
@@ -183,13 +192,34 @@ impl ClassFileReader {
                 }
             },
             file_name: file_name.to_string(),
+            // mode: Dump::Byte,
+            mode: Dump::Hex,
         }
+    }
+
+    pub fn dump_bytes<'a>(&'a mut self, pos: u64, buf: &'a [u8]) -> &[u8] {
+        match self.mode {
+            Dump::Hex => println!("{:06x}: {:x?} {}", pos, buf, buf.len()),
+            Dump::Byte => println!("{:06x}: {:?} {}", pos, buf, buf.len()),
+            Dump::None => ()
+        }
+        buf
+    }
+
+    pub fn dump<N: std::fmt::Display>(&mut self, pos: u64, buf: &[u8], num: N) -> N {
+        match self.mode {
+            Dump::Hex => println!("{:06x}: {:x?} {}", pos, buf, num),
+            Dump::Byte => println!("{:06x}: {:?} {}", pos, buf, num),
+            Dump::None => ()
+        }
+        num
     }
 
     pub fn read_f64(&mut self) -> f64 {
         let mut buf = [0; 8];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => f64::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, f64::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading f64 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -199,8 +229,9 @@ impl ClassFileReader {
 
     pub fn read_f32(&mut self) -> f32 {
         let mut buf = [0; 4];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => f32::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, f32::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading f32 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -210,8 +241,9 @@ impl ClassFileReader {
 
     pub fn read_u64(&mut self) -> u64 {
         let mut buf = [0; 8];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => u64::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, u64::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading u64 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -221,8 +253,9 @@ impl ClassFileReader {
 
     pub fn read_u32(&mut self) -> u32 {
         let mut buf = [0; 4];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => u32::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, u32::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading u32 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -232,8 +265,9 @@ impl ClassFileReader {
 
     pub fn read_u16(&mut self) -> u16 {
         let mut buf = [0; 2];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => u16::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, u16::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading u16 {} - {}", self.file_name, err); 
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -243,8 +277,9 @@ impl ClassFileReader {
 
     fn read_u8(&mut self) -> u8 {
         let mut buf = [0; 1];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => u8::from_be_bytes(buf),
+            Ok(_) => self.dump(pos, &buf, u8::from_be_bytes(buf)),
             Err(err) => {
                 eprintln!("jcfreader: error reading u8 {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -254,8 +289,9 @@ impl ClassFileReader {
 
     fn read_bytes(&mut self, len: usize) -> Vec<u8> {
         let mut buf = vec![0u8; len];
+        let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
-            Ok(_) => buf,
+            Ok(_) => self.dump_bytes(pos, &buf).to_vec(),
             Err(err) => {
                 eprintln!("jcfreader: error reading n bytes {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
