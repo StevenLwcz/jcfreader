@@ -197,10 +197,19 @@ impl ClassFileReader {
         }
     }
 
+    pub fn dump_string<'a>(&'a mut self, pos: u64, s: String) -> String {
+        match self.mode {
+            Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, s, s.len()),
+            Dump::Byte => println!("{:06x}: {:?} len: {}", pos, s, s.len()),
+            Dump::None => ()
+        }
+        s
+    }
+
     pub fn dump_bytes<'a>(&'a mut self, pos: u64, buf: &'a [u8]) -> &[u8] {
         match self.mode {
-            Dump::Hex => println!("{:06x}: {:x?} {}", pos, buf, buf.len()),
-            Dump::Byte => println!("{:06x}: {:?} {}", pos, buf, buf.len()),
+            Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, buf, buf.len()),
+            Dump::Byte => println!("{:06x}: {:?} len: {}", pos, buf, buf.len()),
             Dump::None => ()
         }
         buf
@@ -292,6 +301,18 @@ impl ClassFileReader {
         let pos = self.file.stream_position().unwrap();
         match self.file.read_exact(&mut buf) {
             Ok(_) => self.dump_bytes(pos, &buf).to_vec(),
+            Err(err) => {
+                eprintln!("jcfreader: error reading n bytes {} - {}", self.file_name, err);
+                std::process::exit(JAVAP_FILE_NOT_FOUND);
+            }
+        }
+    }
+ 
+    fn read_string(&mut self, len: usize) -> String {
+        let mut buf = vec![0u8; len];
+        let pos = self.file.stream_position().unwrap();
+        match self.file.read_exact(&mut buf) {
+            Ok(_) => self.dump_string(pos, String::from_utf8(buf).unwrap()),
             Err(err) => {
                 eprintln!("jcfreader: error reading n bytes {} - {}", self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -433,8 +454,7 @@ impl ConstantPool {
 
     fn read_utf8(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
         let len = reader.read_u16();  
-        let bytes = reader.read_bytes(len as usize);
-        let string = String::from_utf8(bytes).unwrap(); 
+        let string = reader.read_string(len as usize);
         self.literal_pool.insert(index, LiteralInfo::String(string));
         ConstantInfo(Tag::Utf8, Index::Single(index))  
     }
