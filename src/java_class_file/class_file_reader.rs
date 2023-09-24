@@ -122,7 +122,7 @@ pub struct FieldInfo {
 impl FieldInfo {
    pub fn new(reader: &mut ClassFileReader) -> Self {
        FieldInfo {
-           access_flags: reader.read_u16(),
+           access_flags: reader.set_context(Some("access flags".to_string())).read_u16(),
            name_index:  reader.read_constant_index(),
            descriptor_index: reader.read_constant_index(),
            attributes: reader.read_attributes(),
@@ -179,6 +179,7 @@ pub struct ClassFileReader {
     file: File,
     mode: Dump,
     pub file_name: String,
+    context: Option<String>,
 }
 
 impl ClassFileReader {
@@ -194,6 +195,7 @@ impl ClassFileReader {
             file_name: file_name.to_string(),
             // mode: Dump::Byte,
             mode: Dump::Hex,
+            context: None,
         }
     }
 
@@ -216,10 +218,19 @@ impl ClassFileReader {
     }
 
     pub fn dump<N: std::fmt::Display>(&mut self, pos: u64, buf: &[u8], num: N) -> N {
-        match self.mode {
-            Dump::Hex => println!("{:06x}: {:x?} {}", pos, buf, num),
-            Dump::Byte => println!("{:06x}: {:?} {}", pos, buf, num),
-            Dump::None => ()
+        if self.context.is_some() {
+            match self.mode {
+                Dump::Hex =>  println!("{:06x}: {} {:x?} {}", pos, self.context.as_ref().unwrap(), buf, num),
+                Dump::Byte => println!("{:06x}: {} {:?} {}", pos, self.context.as_ref().unwrap(), buf, num),
+                Dump::None => ()
+            }
+            self.context = None;
+        } else {
+            match self.mode {
+                Dump::Hex => println!("{:06x}: {:x?} {}", pos, buf, num),
+                Dump::Byte => println!("{:06x}: {:?} {}", pos, buf, num),
+                Dump::None => ()
+            }
         }
         num
     }
@@ -271,6 +282,14 @@ impl ClassFileReader {
             }
         }
     }
+
+    pub fn set_context(&mut self, context: Option<String>) -> &mut Self {
+        if context.is_some() {
+            self.context = context;
+        }
+        self
+    }
+     
 
     pub fn read_u16(&mut self) -> u16 {
         let mut buf = [0; 2];
