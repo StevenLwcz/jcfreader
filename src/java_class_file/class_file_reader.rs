@@ -302,7 +302,7 @@ impl ClassFileReader {
         match self.file.read_exact(&mut buf) {
             Ok(_) => self.dump_bytes(pos, &buf).to_vec(),
             Err(err) => {
-                eprintln!("jcfreader: error reading n bytes {} - {}", self.file_name, err);
+                eprintln!("jcfreader: error reading {} bytes {} - {}", len, self.file_name, err);
                 std::process::exit(JAVAP_FILE_NOT_FOUND);
             }
         }
