@@ -209,23 +209,20 @@ impl ClassFileReader {
 
     pub fn dump_bytes<'a>(&'a mut self, pos: u64, buf: &'a [u8]) -> &[u8] {
         let mut pos = pos;
-        if buf.len() < 17 {
-            match self.mode {
-                Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, buf, buf.len()),
-                Dump::Byte => println!("{:06x}: {:?} len: {}", pos, buf, buf.len()),
-                Dump::None => ()
-            }
-        } else {
-            let mut i = 0;
-            while i < buf.len() {
-                if buf.len() - i < 16 {
-                    println!("{:06x}: {:02x?}", pos, &buf[i..]);
-                } else {
-                    println!("{:06x}: {:02x?}", pos, &buf[i..i+16]);
-                }
-                pos += 16;
-                i += 16;
-            }
+        match self.mode {
+            Dump::Hex => {
+                for slice in buf.chunks(16) {
+                    println!("{:06x}: {:02x?}", pos, slice);
+                    pos += 16;
+                };
+           },
+           Dump::Byte => {
+                for slice in buf.chunks(16) {
+                    println!("{:06x}: {:3?}", pos, slice);
+                    pos += 16;
+                };
+           },
+           Dump::None => (),
         }
         buf
     }
