@@ -219,9 +219,9 @@ impl ClassFileReader {
             let mut i = 0;
             while i < buf.len() {
                 if buf.len() - i < 16 {
-                    println!("{:06x}: {:x?}", pos, &buf[i..]);
+                    println!("{:06x}: {:02x?}", pos, &buf[i..]);
                 } else {
-                    println!("{:06x}: {:x?}", pos, &buf[i..i+16]);
+                    println!("{:06x}: {:02x?}", pos, &buf[i..i+16]);
                 }
                 pos += 16;
                 i += 16;
