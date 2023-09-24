@@ -122,7 +122,7 @@ pub struct FieldInfo {
 impl FieldInfo {
    pub fn new(reader: &mut ClassFileReader) -> Self {
        FieldInfo {
-           access_flags: reader.set_context(Some("access flags".to_string())).read_u16(),
+           access_flags: reader.set_context("access flags").read_u16(),
            name_index:  reader.read_constant_index(),
            descriptor_index: reader.read_constant_index(),
            attributes: reader.read_attributes(),
@@ -283,10 +283,8 @@ impl ClassFileReader {
         }
     }
 
-    pub fn set_context(&mut self, context: Option<String>) -> &mut Self {
-        if context.is_some() {
-            self.context = context;
-        }
+    pub fn set_context(&mut self, context: &str) -> &mut Self {
+        self.context = Some(context.to_string());
         self
     }
      
