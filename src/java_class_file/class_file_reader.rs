@@ -122,10 +122,10 @@ pub struct FieldInfo {
 impl FieldInfo {
    pub fn new(reader: &mut ClassFileReader) -> Self {
        FieldInfo {
-           access_flags: reader.set_context("access flags").read_u16(),
-           name_index:  reader.read_constant_index(),
-           descriptor_index: reader.read_constant_index(),
-           attributes: reader.read_attributes(),
+           access_flags: reader.context("access flags").read_u16(),
+           name_index:  reader.context("name index").read_constant_index(),
+           descriptor_index: reader.context("descriptor index").read_constant_index(),
+           attributes: reader.context("attributes").read_attributes(),
        }
    }
 }
@@ -153,10 +153,10 @@ struct _Code {
 impl _Code {
     fn _new(reader: &mut ClassFileReader) -> Self {
         Self {
-            stack: reader.read_u16(),
-            locals: reader.read_u16(),
-            args_size: reader.read_u16(),
-            byte_code: reader.read_vec_len_u32(),
+            stack: reader.context("stack").read_u16(),
+            locals: reader.context("locals").read_u16(),
+            args_size: reader.context("args size").read_u16(),
+            byte_code: reader.context("byte code").read_vec_len_u32(),
         }
     }
 }
@@ -193,26 +193,39 @@ impl ClassFileReader {
                 }
             },
             file_name: file_name.to_string(),
-            // mode: Dump::Byte,
-            mode: Dump::Hex,
+            mode: Dump::Byte,
+            // mode: Dump::Hex,
             context: None,
         }
     }
 
     pub fn dump_string<'a>(&'a mut self, pos: u64, s: String) -> String {
         match self.mode {
-            Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, s, s.len()),
-            Dump::Byte => println!("{:06x}: {:?} len: {}", pos, s, s.len()),
+            Dump::Hex | Dump::Byte => println!("{:06x}: {:?} len: {}", pos, s, s.len()),
             Dump::None => ()
         }
         s
     }
 
     pub fn dump_bytes<'a>(&'a mut self, pos: u64, buf: &'a [u8]) -> &[u8] {
-        match self.mode {
-            Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, buf, buf.len()),
-            Dump::Byte => println!("{:06x}: {:?} len: {}", pos, buf, buf.len()),
-            Dump::None => ()
+        let mut pos = pos;
+        if buf.len() < 17 {
+            match self.mode {
+                Dump::Hex => println!("{:06x}: {:x?} len: {}", pos, buf, buf.len()),
+                Dump::Byte => println!("{:06x}: {:?} len: {}", pos, buf, buf.len()),
+                Dump::None => ()
+            }
+        } else {
+            let mut i = 0;
+            while i < buf.len() {
+                if buf.len() - i < 16 {
+                    println!("{:06x}: {:x?}", pos, &buf[i..]);
+                } else {
+                    println!("{:06x}: {:x?}", pos, &buf[i..i+16]);
+                }
+                pos += 16;
+                i += 16;
+            }
         }
         buf
     }
@@ -220,8 +233,8 @@ impl ClassFileReader {
     pub fn dump<N: std::fmt::Display>(&mut self, pos: u64, buf: &[u8], num: N) -> N {
         if self.context.is_some() {
             match self.mode {
-                Dump::Hex =>  println!("{:06x}: {} {:x?} {}", pos, self.context.as_ref().unwrap(), buf, num),
-                Dump::Byte => println!("{:06x}: {} {:?} {}", pos, self.context.as_ref().unwrap(), buf, num),
+                Dump::Hex =>  println!("{:06x}: {:16} {:x?} {}", pos, self.context.as_ref().unwrap(), buf, num),
+                Dump::Byte => println!("{:06x}: {:16} {:?} {}", pos, self.context.as_ref().unwrap(), buf, num),
                 Dump::None => ()
             }
             self.context = None;
@@ -283,7 +296,7 @@ impl ClassFileReader {
         }
     }
 
-    pub fn set_context(&mut self, context: &str) -> &mut Self {
+    pub fn context(&mut self, context: &str) -> &mut Self {
         self.context = Some(context.to_string());
         self
     }
@@ -342,11 +355,11 @@ impl ClassFileReader {
     }
 
     fn read_constant_index_pair(&mut self) -> Index {
-        Index::Pair(self.read_u16(), self.read_u16())
+        Index::Pair(self.context("name").read_u16(), self.context("type").read_u16())
     }
 
     fn read_constant_index_ref(&mut self) -> Index {
-        Index::Ref(self.read_u16(), self.read_u16())
+        Index::Ref(self.context("class").read_u16(), self.context("name & type").read_u16())
     }
 
    pub fn read_interfaces(&mut self) -> Vec<Index> {
@@ -359,7 +372,7 @@ impl ClassFileReader {
    }
 
    pub fn read_fields(&mut self) -> Vec<FieldInfo> {
-       let count =  self.read_u16();
+       let count =  self.context("field count").read_u16();
        let mut fields = Vec::<FieldInfo>::with_capacity(count as usize);
        for _ in 0..count {
            fields.push(FieldInfo::new(self));
@@ -373,27 +386,27 @@ impl ClassFileReader {
    }
 
    pub fn read_attributes(&mut self) -> Vec<AttributeInfo> {
-       let count =  self.read_u16();
+       let count =  self.context("attr count").read_u16();
        let mut attributes = Vec::<AttributeInfo>::with_capacity(count as usize);
        for _ in 0..count {
            attributes.push(
                AttributeInfo {
-                   attribute_name_index : self.read_constant_index(),
-                   info: self.read_vec_len_u32(),
+                   attribute_name_index : self.context("name index").read_constant_index(),
+                   info: self.context("info").read_vec_len_u32(),
                });
        }
        attributes
    }
 
    pub fn read_methods(&mut self) -> Vec<MethodInfo> {
-       let count =  self.read_u16();
+       let count =  self.context("method count").read_u16();
        let mut methods = Vec::<MethodInfo>::with_capacity(count as usize);
        for _ in 0..count {
            methods.push(
                MethodInfo {
-                   access_flags : self.read_u16(),
-                   name_index  :  self.read_constant_index(),
-                   descriptor_index : self.read_constant_index(),
+                   access_flags : self.context("access flags").read_u16(),
+                   name_index  :  self.context("name index").read_constant_index(),
+                   descriptor_index : self.context("descriptor index").read_constant_index(),
                    attributes : self.read_attributes(),
            });
        }
@@ -410,7 +423,7 @@ pub struct ConstantPool {
 
 impl ConstantPool {
     pub fn new(reader: &mut ClassFileReader) -> Self {
-        let count = reader.read_u16();
+        let count = reader.context("constant count").read_u16();
         let mut cp = Self {
             constant_info : Vec::<ConstantInfo>::with_capacity(count as usize),
             literal_pool : HashMap::new(),
@@ -422,7 +435,7 @@ impl ConstantPool {
     fn read_constant_pool(&mut self, count: u16, reader: &mut ClassFileReader) {
         let mut index = 1;
         while index < count {
-            let tag = reader.read_u8();
+            let tag = reader.context("tag").read_u8();
             let info = match tag {
                 TAG_UTF8 => self.read_utf8(index, reader),
                 TAG_INTEGER => self.read_integer(index, reader),
@@ -470,42 +483,42 @@ impl ConstantPool {
     }
 
     fn read_utf8(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
-        let len = reader.read_u16();  
+        let len = reader.context("utf8 len").read_u16();  
         let string = reader.read_string(len as usize);
         self.literal_pool.insert(index, LiteralInfo::String(string));
         ConstantInfo(Tag::Utf8, Index::Single(index))  
     }
 
     fn read_integer(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
-      let i = reader.read_u32();
+      let i = reader.context("integer").read_u32();
       self.literal_pool.insert(index, LiteralInfo::Integer(i));
       ConstantInfo(Tag::Integer, Index::Single(index))
     }
 
     fn read_float(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
-      let f = reader.read_f32();
+      let f = reader.context("float").read_f32();
       self.literal_pool.insert(index, LiteralInfo::Float(f));
       ConstantInfo(Tag::Float, Index::Single(index))
     }
 
     fn read_long(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
-      let l = reader.read_u64();
+      let l = reader.context("long").read_u64();
       self.literal_pool.insert(index, LiteralInfo::Long(l));
       ConstantInfo(Tag::Long, Index::Single(index))
     }
 
     fn read_double(&mut self, index: u16, reader: &mut ClassFileReader) -> ConstantInfo {
-      let d = reader.read_f64();
+      let d = reader.context("double").read_f64();
       self.literal_pool.insert(index, LiteralInfo::Double(d));
       ConstantInfo(Tag::Double, Index::Single(index))
     }
 
     fn read_class(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
-        ConstantInfo(Tag::Class, reader.read_constant_index())
+        ConstantInfo(Tag::Class, reader.context("class index").read_constant_index())
     }
 
     fn read_string(&mut self, reader: &mut ClassFileReader)  -> ConstantInfo {
-        ConstantInfo(Tag::String, reader.read_constant_index())
+        ConstantInfo(Tag::String, reader.context("string index").read_constant_index())
     }
 
     fn read_name_and_type(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
