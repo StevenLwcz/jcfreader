@@ -201,7 +201,7 @@ impl ClassFileReader {
 
     pub fn dump_string<'a>(&'a mut self, pos: u64, s: String) -> String {
         match self.mode {
-            Dump::Hex | Dump::Byte => println!("{:06x}: {:?} len: {}", pos, s, s.len()),
+            Dump::Hex | Dump::Byte => println!("{:06x}: {:?}", pos, s),
             Dump::None => ()
         }
         s

@@ -28,15 +28,15 @@ pub struct ClassFile {
 impl ClassFile {
     pub fn new(file_name: &String) -> Self {
         let mut reader = ClassFileReader::new(&file_name);
-        if reader.read_u32() != JAVA_MAGIC {
+        if reader.context("magic").read_u32() != JAVA_MAGIC {
             eprintln!("javap: Not a java class file {}", reader.file_name);
                         std::process::exit(JAVAP_FILE_NOT_FOUND);
         };
 
         Self {
-            version         : JavaVersion(reader.read_u16(), reader.read_u16()),
+            version         : JavaVersion(reader.context("minor").read_u16(), reader.context("major").read_u16()),
             constant_pool   : ConstantPool::new(&mut reader),
-            _access_flags   : reader.read_u16(),
+            _access_flags   : reader.context("access flags").read_u16(),
             _this_class     : reader.read_constant_index(),
             _super_class    : reader.read_constant_index(),
             interfaces      : reader.read_interfaces(),
