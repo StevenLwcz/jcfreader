@@ -37,8 +37,9 @@ enum Tag {
     MethodRef,
     InterfaceMethodRef,
     NameAndType,
-    _MethodHandle = 15,
+    MethodHandle = 15,
     _MethodType,
+    Dynamic,
     InvokeDynamic,
     _Module,
     _Package,
@@ -58,8 +59,9 @@ impl fmt::Display for Tag {
             Tag::MethodRef => write!(f, "MethodRef         "),
             Tag::InterfaceMethodRef => write!(f, "InterfaceMethodRef"),
             Tag::NameAndType =>        write!(f, "NameAndType       "),
-            Tag::_MethodHandle =>      write!(f, "MethodHandle      "),
+            Tag::MethodHandle =>      write!(f, "MethodHandle      "),
             Tag::_MethodType =>        write!(f, "MethodType        "),
+            Tag::Dynamic =>     write!(f, "Dynamic     "),
             Tag::InvokeDynamic =>     write!(f, "InvokeDynamic     "),
             Tag::_Module =>            write!(f, "Module            "),
             Tag::_Package =>           write!(f, "Package           "),
@@ -73,6 +75,7 @@ pub enum Index {
     Pair(u16, u16),
     Ref(u16, u16),
     Dynamic(u16, u16),
+    MethodHandle(u8, u16),
 }
 
 impl fmt::Display for Index {
@@ -81,6 +84,7 @@ impl fmt::Display for Index {
             Index::Single(i) => write!(f, "#{}", i),
             Index::Pair(i1, i2) | Index::Ref(i1, i2) => write!(f, "#{},#{}", i1,i2),
             Index::Dynamic(i1, i2) => write!(f, "{}:#{}", i1, i2),
+            Index::MethodHandle(i1, i2) => write!(f, "{}:#{}", i1, i2),
         }
     }
 }
@@ -365,6 +369,10 @@ impl ClassFileReader {
         Index::Dynamic(self.context("bootstrap index").read_u16(), self.context("name & type").read_u16())
     }
 
+    fn read_constant_index_handle(&mut self) -> Index {
+        Index::MethodHandle(self.context("ref kind").read_u8(), self.context("ref index").read_u16())
+    }
+
    pub fn read_interfaces(&mut self) -> Vec<Index> {
        let count =  self.read_u16();
        let mut interfaces = Vec::<Index>::with_capacity(count as usize);
@@ -528,16 +536,16 @@ impl ConstantPool {
         ConstantInfo(Tag::NameAndType, reader.read_constant_index_pair())
     }
 
-    fn read_method_handle(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Handle")
+    fn read_method_handle(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
+        ConstantInfo(Tag::MethodHandle, reader.read_constant_index_handle())
     }
 
     fn read_method_type(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
       todo!("Method Type")
     }
 
-    fn read_dynamic(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Dynamic")
+    fn read_dynamic(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
+        ConstantInfo(Tag::Dynamic, reader.read_constant_index_dynamic())
     }
 
     fn read_invoke_dynamic(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
@@ -576,6 +584,13 @@ impl ConstantPool {
                 let info = &self.constant_info[*i2 as usize];
                 let name_and_type = self.get_item(&info.1);
                 format!("{}.{}", bootstrap, name_and_type)
+            }
+            Index::MethodHandle(i1, i2) => {
+                let info = &self.constant_info[*i1 as usize];
+                let kind = &info.1;
+                let info = &self.constant_info[*i2 as usize];
+                let index = self.get_item(&info.1);
+                format!("{}.{}", kind, index)
             }
         }
     }
