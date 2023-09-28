@@ -41,8 +41,8 @@ enum Tag {
     MethodType,
     Dynamic,
     InvokeDynamic,
-    _Module,
-    _Package,
+    Module,
+    Package,
 }
 
 impl fmt::Display for Tag {
@@ -63,8 +63,8 @@ impl fmt::Display for Tag {
             Tag::MethodType =>        write!(f, "MethodType        "),
             Tag::Dynamic =>     write!(f, "Dynamic     "),
             Tag::InvokeDynamic =>     write!(f, "InvokeDynamic     "),
-            Tag::_Module =>            write!(f, "Module            "),
-            Tag::_Package =>           write!(f, "Package           "),
+            Tag::Module =>            write!(f, "Module            "),
+            Tag::Package =>           write!(f, "Package           "),
         }
     }
 }
@@ -552,12 +552,12 @@ impl ConstantPool {
         ConstantInfo(Tag::InvokeDynamic, reader.read_constant_index_dynamic())
     }
 
-    fn read_module(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Module")
+    fn read_module(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
+        ConstantInfo(Tag::Module, reader.context("module").read_constant_index())
     }
 
-    fn read_package(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Package")
+    fn read_package(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
+        ConstantInfo(Tag::Package, reader.context("package").read_constant_index())
     }
 
 
