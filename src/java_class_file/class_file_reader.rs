@@ -38,7 +38,7 @@ enum Tag {
     InterfaceMethodRef,
     NameAndType,
     MethodHandle = 15,
-    _MethodType,
+    MethodType,
     Dynamic,
     InvokeDynamic,
     _Module,
@@ -60,7 +60,7 @@ impl fmt::Display for Tag {
             Tag::InterfaceMethodRef => write!(f, "InterfaceMethodRef"),
             Tag::NameAndType =>        write!(f, "NameAndType       "),
             Tag::MethodHandle =>      write!(f, "MethodHandle      "),
-            Tag::_MethodType =>        write!(f, "MethodType        "),
+            Tag::MethodType =>        write!(f, "MethodType        "),
             Tag::Dynamic =>     write!(f, "Dynamic     "),
             Tag::InvokeDynamic =>     write!(f, "InvokeDynamic     "),
             Tag::_Module =>            write!(f, "Module            "),
@@ -540,8 +540,8 @@ impl ConstantPool {
         ConstantInfo(Tag::MethodHandle, reader.read_constant_index_handle())
     }
 
-    fn read_method_type(&mut self, _reader: &mut ClassFileReader) -> ConstantInfo {
-      todo!("Method Type")
+    fn read_method_type(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
+        ConstantInfo(Tag::MethodType, reader.context("method type").read_constant_index())
     }
 
     fn read_dynamic(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
