@@ -33,7 +33,7 @@ pub struct ClassFile {
 
 impl ClassFile {
     pub fn new(file_name: &String, dump: Dump) -> Self {
-        let mut reader = ClassFileReader::new(&file_name, dump);
+        let mut reader = ClassFileReader::new(file_name, dump);
         if reader.context("magic").read_u32() != JAVA_MAGIC {
             eprintln!("jcfr: Not a java class file {}", reader.file_name);
                         std::process::exit(JAVAP_FILE_NOT_FOUND);
@@ -155,7 +155,7 @@ impl Annotation {
         let num = reader.read_u16();
 
         for _ in 0..num {
-            pairs.push(ValuePair::new(reader, &class_file));
+            pairs.push(ValuePair::new(reader, class_file));
         }
 
         Self {
@@ -178,7 +178,7 @@ impl ValuePair {
         let name = class_file.constant_pool.get_item(&Index::Single(index));
 
         let tag = char::from(reader.read_u8());
-        let mut value = LiteralInfo::Integer(0);
+        let mut value;
         match tag {
             'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  {
                 let index = reader.read_u16();
@@ -214,7 +214,7 @@ impl ClassAttributes {
                         source_file = Some(class_file.constant_pool.get_item(&Index::Single(index)));
                     },
                     "RuntimeVisibleAnnotations" => { 
-                        runtime_visible_annotations = Some(ClassAttributes::get_annotations(&class_file, &a.info));
+                        runtime_visible_annotations = Some(ClassAttributes::get_annotations(class_file, &a.info));
                     }
                     "SourceDebugExtension" => (),
                     "InnerClasses" => (),
@@ -231,7 +231,7 @@ impl ClassAttributes {
         let num = reader.read_u16();
         let mut annotations = Vec::<Annotation>::with_capacity(num as usize);
         for _ in 0..num {
-            let annotation = Annotation::new(&mut reader, &class_file);
+            let annotation = Annotation::new(&mut reader, class_file);
             annotations.push(annotation);
         }
         annotations

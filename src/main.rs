@@ -8,9 +8,9 @@ fn main() {
     let mut file_name :Option<String> = None;
     for arg in args {
         println!("{}", arg);
-        if arg == "-hex".to_string() {
+        if arg == *"-hex" {
             dump = Dump::Hex;
-        } else if arg == "-byte".to_string() {
+        } else if arg == *"-byte" {
             dump = Dump::Byte;
         } else {
             file_name = Some(arg.to_string());
