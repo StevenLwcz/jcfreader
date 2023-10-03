@@ -10,6 +10,12 @@ use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
 
+pub enum Dump {
+    Hex,
+    Byte,
+    None,
+}
+
 // todo provide iterators so can be private again ???
 pub struct ClassFile {
     version             : JavaVersion,
@@ -26,10 +32,10 @@ pub struct ClassFile {
 // needs to return a Result<ClassFile><Error>  for any errors found..
 
 impl ClassFile {
-    pub fn new(file_name: &String) -> Self {
-        let mut reader = ClassFileReader::new(&file_name);
+    pub fn new(file_name: &String, dump: Dump) -> Self {
+        let mut reader = ClassFileReader::new(&file_name, dump);
         if reader.context("magic").read_u32() != JAVA_MAGIC {
-            eprintln!("javap: Not a java class file {}", reader.file_name);
+            eprintln!("jcfr: Not a java class file {}", reader.file_name);
                         std::process::exit(JAVAP_FILE_NOT_FOUND);
         };
 

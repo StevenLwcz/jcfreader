@@ -3,6 +3,7 @@ use std::io::Read;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Seek;
+use crate::java_class_file::Dump;
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 
@@ -175,12 +176,6 @@ impl fmt::Display for JavaVersion {
     }
 }
 
-enum Dump {
-    Hex,
-    Byte,
-    None,
-}
-
 pub struct ClassFileReader {
     file: File,
     mode: Dump,
@@ -189,7 +184,7 @@ pub struct ClassFileReader {
 }
 
 impl ClassFileReader {
-    pub fn new(file_name: &String) -> Self {
+    pub fn new(file_name: &String, dump: Dump) -> Self {
         Self {
             file : match File::open(file_name) {
                 Ok(r) => r,
@@ -199,8 +194,7 @@ impl ClassFileReader {
                 }
             },
             file_name: file_name.to_string(),
-            mode: Dump::Byte,
-            // mode: Dump::Hex,
+            mode: dump,
             context: None,
         }
     }
@@ -559,7 +553,6 @@ impl ConstantPool {
     fn read_package(&mut self, reader: &mut ClassFileReader) -> ConstantInfo {
         ConstantInfo(Tag::Package, reader.context("package").read_constant_index())
     }
-
 
     pub fn get_literal(&self, index: u16) -> &LiteralInfo {
         self.literal_pool.get(&index).unwrap()
