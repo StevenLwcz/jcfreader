@@ -3,7 +3,7 @@ use std::io::Read;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Seek;
-use crate::java_class_file::Dump;
+use crate::Dump;
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 
@@ -137,35 +137,18 @@ impl FieldInfo {
    }
 }
 
+#[derive(Debug)]
 pub struct AttributeInfo {
      pub attribute_name_index: Index,
      pub info: Vec<u8>,
 }
 
+#[derive(Debug)]
 pub struct MethodInfo {
     pub access_flags: u16,
     pub name_index: Index,
     pub descriptor_index: Index,
     pub attributes : Vec<AttributeInfo>,
-}
-
-struct _Code {
-    stack: u16,
-    locals: u16,
-    args_size: u16,
-    byte_code: Vec<u8>,
-//    line_number_table: Vec<LineNumber>,
-}
-
-impl _Code {
-    fn _new(reader: &mut ClassFileReader) -> Self {
-        Self {
-            stack: reader.context("stack").read_u16(),
-            locals: reader.context("locals").read_u16(),
-            args_size: reader.context("args size").read_u16(),
-            byte_code: reader.context("byte code").read_vec_len_u32(),
-        }
-    }
 }
 
 pub struct JavaVersion(pub u16, pub u16);

@@ -1,6 +1,9 @@
+pub mod code;
+
 use std::env;
-use jcfreader::java_class_file;
-use jcfreader::java_class_file::Dump;
+use jcfreader::ClassFile;
+use jcfreader::Dump;
+use crate::code::Code;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -23,7 +26,7 @@ fn main() {
     }
     println!("filename: {}", file_name.as_ref().unwrap());
 
-    let class_file = java_class_file::ClassFile::new(&file_name.unwrap(), dump);
+    let class_file = ClassFile::new(&file_name.unwrap(), dump);
 
     println!("{}", class_file.get_version());
     println!("Fields");
@@ -33,6 +36,13 @@ fn main() {
     println!("Methods");
     for method in class_file.get_methods() {
         println!("{}: {}", method.get_name(), method.get_descriptor());
+        for attr in  method.get_attributes().iter() {
+            println!("{}", attr.name);
+            if attr.name == "Code" {
+               let x = Code::new(&attr.info);
+               println!("{:?}", x.code);
+            }
+        }
     }
     let attr = class_file.get_class_attributes();
     println!("SourceFile {:?}", attr.source_file);

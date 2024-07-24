@@ -1,11 +1,9 @@
-pub mod java_class_file {
-
-mod class_file_reader;
-
 use std::slice::Iter;
 use std::io::Read;
 
-use crate::java_class_file::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, ClassFileReader, JavaVersion, LiteralInfo};
+pub mod class_file_reader;
+use crate::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, JavaVersion, LiteralInfo};
+use crate::class_file_reader::ClassFileReader;
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;
@@ -26,7 +24,7 @@ pub struct ClassFile {
     interfaces          : Vec<Index>,
     fields              : Vec<FieldInfo>,
     methods             : Vec<MethodInfo>,
-    pub attributes          : Vec<AttributeInfo>,
+    pub attributes      : Vec<AttributeInfo>,
 }
 
 // needs to return a Result<ClassFile><Error>  for any errors found..
@@ -83,6 +81,7 @@ impl ClassFile {
               flags: m.access_flags, 
               name: self.constant_pool.get_item(&m.name_index),
               descriptor: self.constant_pool.get_item(&m.descriptor_index),
+              attributes: self.get_attributes_vec(&m.attributes),
            }
         })
         .collect()
@@ -92,7 +91,17 @@ impl ClassFile {
        ClassAttributes::new(self)
    }
 
-   // pub fn get_attributes(&self) -> Vec<Attribute> {
+   pub fn get_attributes_vec(&self, a: &Vec<AttributeInfo>) -> Vec<Attribute> {
+      a.iter().map(|i| {
+          Attribute {
+               name: self.constant_pool.get_item(&i.attribute_name_index),
+               info: i.info.to_owned(),
+         }
+     })
+     .collect()
+   }
+
+   // get_method_attributes(&self) -> Vec<Attribute> {
        // self.attributes.iter().map(|m| {
            // Attribute {
               // name: self.constant_pool.get_item(&m.attribute_name_index),
@@ -104,10 +113,16 @@ impl ClassFile {
 
 } // ClassFile
 
+pub struct Attribute {
+    pub name: String,
+    pub info: Vec<u8>,
+}
+
 pub struct Method {
     flags: u16,
     name: String,
     descriptor: String,
+    attributes: Vec<Attribute>, 
 }
 
 impl Method {
@@ -120,12 +135,17 @@ impl Method {
     pub fn get_descriptor(&self) -> &String {
         &self.descriptor
     }
+    pub fn get_attributes(&self) -> &Vec<Attribute>
+    {
+        &self.attributes
+    }
 }
 
 pub struct Field {
     flags: u16,
     name: String,
     descriptor: String,
+
 }
 
 impl Field {
@@ -140,6 +160,7 @@ impl Field {
     }
 }
 
+// runtime annotation
 #[derive(Debug)]
 pub struct Annotation {
     r#type: String,
@@ -178,7 +199,7 @@ impl ValuePair {
         let name = class_file.constant_pool.get_item(&Index::Single(index));
 
         let tag = char::from(reader.read_u8());
-        let mut value;
+        let value;
         match tag {
             'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  {
                 let index = reader.read_u16();
@@ -198,6 +219,7 @@ impl ValuePair {
 pub struct ClassAttributes {
     pub source_file: Option<String>,
     pub runtime_visible_annotations: Option<Vec<Annotation>>,
+    // pub bootstrap_methods: Option<Vec<BootStrapMethods>>,
     // etc
 }
 
@@ -218,6 +240,9 @@ impl ClassAttributes {
                     }
                     "SourceDebugExtension" => (),
                     "InnerClasses" => (),
+                    "BootStrapMethods" => {
+                        // bootstrap_methods = Some(ClassAttributes::get_bootstrap_methods(class_file, &a.info));
+                    }
                     &_ => todo!("{}", name),
             }
         }
@@ -262,4 +287,3 @@ impl <'a>AnnotationReader<'a> {
     }
 }
 
-} // mod java_class_file
