@@ -41,7 +41,9 @@ fn main() {
             println!("{}", attr.name);
             if attr.name == "Code" {
                let x = Code::new(&attr.info);
-               println!("{:?}", x.code);
+               for o in x.code {
+               println!("{}", o);
+               }
             }
         }
     }

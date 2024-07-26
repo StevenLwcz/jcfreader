@@ -15,7 +15,6 @@ struct Exception {
 pub struct Code {
     max_stack: u16,
     max_locals: u16,
-    // pub code: Vec<String>,
     pub code: Vec<Opcode>,
     exception_table: Vec<Exception>,
     attributes: Vec<AttributeInfo>,
@@ -29,7 +28,6 @@ impl Code {
             max_locals : reader.read_u16(),
             code: {
                 let code_length = reader.read_u32();
-                println!("Self code code length {}", code_length);
                 let mut v = Vec::<Opcode>::with_capacity(code_length as usize);
                 reader.set_length(code_length);
                 while reader.has_bytes() {
@@ -40,13 +38,11 @@ impl Code {
             },
             exception_table: {
                 let exception_table_length = reader.read_u16();
-                println!("Exception table length: {}", exception_table_length);
                 let mut v = Vec::<Exception>::with_capacity(exception_table_length as usize);
                 v
             },
             attributes: {
                 let attributes_count = reader.read_u16();
-                println!("attribute count: {}", attributes_count);
                 let mut v = Vec::<AttributeInfo>::with_capacity(attributes_count  as usize);
                 v
             },
