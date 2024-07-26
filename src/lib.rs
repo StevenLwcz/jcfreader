@@ -1,9 +1,9 @@
+// module jcfreader
 use std::slice::Iter;
 use std::io::Read;
 
 pub mod class_file_reader;
-use crate::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, JavaVersion, LiteralInfo};
-use crate::class_file_reader::ClassFileReader;
+use crate::class_file_reader::{Index, ConstantPool, FieldInfo, MethodInfo, AttributeInfo, JavaVersion, LiteralInfo, ClassFileReader};
 
 const JAVAP_FILE_NOT_FOUND: i32 = 1;
 const JAVA_MAGIC: u32 = 0xcafebabe;

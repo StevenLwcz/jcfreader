@@ -1,3 +1,4 @@
+// module class_file_reader
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
