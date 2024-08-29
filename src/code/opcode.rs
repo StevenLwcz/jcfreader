@@ -137,7 +137,7 @@ pub enum Opcode {
         Invokedynamic,	// 186	Invoke a dynamically-computed call site
         Invokeinterface,	// 185	Invoke interface method
         Invokespecial(u16),	// 183	Directly invoke instance (initialization) method of the current class or its supertypes
-        Invokestatic,	// 184	Invoke static method
+        Invokestatic(u16),	// 184	Invoke static method
         Invokevirtual(u16),	// 182	Invoke instance method, dispatch based on class
         Ior,	// 128	Boolean OR int
         Irem,	// 112	Remainder int
@@ -192,7 +192,7 @@ pub enum Opcode {
         Monitorenter,	// 194	Enter monitor for object
         Monitorexit,	// 195	Exit monitor for object
         Multianewarray(u16,u8),	// 197	Create new multidimensional array
-        New,	// 187	Create new object
+        New(u16),	// 187	Create new object
         Newarray(u8),	// 188	Create new array
         Nop,	// 0	Do nothing
         Pop,	// 87	Pop the top operand stack value
@@ -210,7 +210,7 @@ pub enum Opcode {
 }
 
 pub fn get_opcode(code: u8, reader: &mut CodeReader) -> Opcode {
-        let opcode = match code {
+        match code {
             0 => Opcode::Nop,
             1 => Opcode::AconstNull,
             2 => Opcode::IconstM1,
@@ -395,10 +395,10 @@ pub fn get_opcode(code: u8, reader: &mut CodeReader) -> Opcode {
             181 => Opcode::Putfield(reader.read_u16()),
             182 => Opcode::Invokevirtual(reader.read_u16()),
             183 => Opcode::Invokespecial(reader.read_u16()),
-            184 => Opcode::Invokestatic,
+            184 => Opcode::Invokestatic(reader.read_u16()),
             185 => Opcode::Invokeinterface,
             186 => Opcode::Invokedynamic,
-            187 => Opcode::New,
+            187 => Opcode::New(reader.read_u16()),
             188 => Opcode::Newarray(reader.read_u8()),
             189 => Opcode::Anewarray(reader.read_u16()),
             190 => Opcode::Arraylength,
@@ -417,8 +417,7 @@ pub fn get_opcode(code: u8, reader: &mut CodeReader) -> Opcode {
             254 => Opcode::Impdep1,
             255 => Opcode::Impdep2,
             203_u8..=253_u8 => todo!(),
-         };
-         opcode
+         }
     }
 
 
@@ -560,7 +559,7 @@ impl fmt::Display for Opcode {
             Opcode::Invokedynamic => write!(f, "invokedynamic"),
             Opcode::Invokeinterface => write!(f, "invokeinterface"),
             Opcode::Invokespecial(i) => write!(f, "invokespecial {}", i),
-            Opcode::Invokestatic => write!(f, "invokestatic"),
+            Opcode::Invokestatic(i) => write!(f, "invokestatic {}", i),
             Opcode::Invokevirtual(i) => write!(f, "invokevirtual {}", i),
             Opcode::Ior => write!(f, "ior"),
             Opcode::Irem => write!(f, "irem"),
@@ -615,7 +614,7 @@ impl fmt::Display for Opcode {
             Opcode::Monitorenter => write!(f, "monitorenter"),
             Opcode::Monitorexit => write!(f, "monitorexit"),
             Opcode::Multianewarray(i,j) => write!(f, "multianewarray {} {}", i, j),
-            Opcode::New => write!(f, "new"),
+            Opcode::New(i) => write!(f, "new {}", i),
             Opcode::Newarray(i) => write!(f, "newarray {}", i),
             Opcode::Nop => write!(f, "nop"),
             Opcode::Pop => write!(f, "pop"),

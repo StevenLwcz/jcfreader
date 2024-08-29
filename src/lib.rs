@@ -197,20 +197,16 @@ impl ValuePair {
     fn new(reader: &mut AnnotationReader, class_file: &ClassFile) -> Self {
         let index = reader.read_u16();
         let name = class_file.constant_pool.get_item(&Index::Single(index));
-
         let tag = char::from(reader.read_u8());
-        let value;
-        match tag {
-            'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  {
-                let index = reader.read_u16();
-                value = class_file.constant_pool.get_literal(index).clone();
-            }
-            _ => todo!(),
-        }
 
         Self {
             name,
-            value,
+            value : match tag {
+                'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 's' =>  {
+                    class_file.constant_pool.get_literal(reader.read_u16()).clone()
+                }
+                _ => todo!(),
+            },
         }
     }
 }

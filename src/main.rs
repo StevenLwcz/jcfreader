@@ -36,16 +36,16 @@ fn main() {
     }
     println!("Methods");
     for method in class_file.get_methods() {
-        println!("{}: {}", method.get_name(), method.get_descriptor());
-        for attr in  method.get_attributes().iter() {
-            println!("{}", attr.name);
-            if attr.name == "Code" {
-               let x = Code::new(&attr.info);
-               for o in x.code {
-               println!("{}", o);
-               }
+        println!("Method: {}: {}", method.get_name(), method.get_descriptor());
+            for attr in  method.get_attributes().iter() {
+                println!("{}", attr.name);
+                if attr.name == "Code" {
+                   let x = Code::new(&attr.info);
+                   for o in x.code {
+                       println!("{}", o);
+                   }
+                }
             }
-        }
     }
     let attr = class_file.get_class_attributes();
     println!("SourceFile {:?}", attr.source_file);
